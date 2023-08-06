@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:untitled/pages/random_page.dart';
+import 'package:untitled/pages/register_page.dart';
+import 'package:untitled/pages/my_list_page.dart';
+import 'package:untitled/pages/search_page.dart';
 
 class Root extends StatefulWidget {
   const Root({super.key});
@@ -8,19 +12,19 @@ class Root extends StatefulWidget {
 }
 
 class _RootState extends State<Root> {
-  static const _screens = [
-    Text("myList"),
-    Text("random"),
-    Text("history"),
-    Text("setting"),
-  ];
+  static final _screens = [
+    MyListPage(),
+    RandomPage(),
+    Scaffold(body: Center(child: Text("settings",style: TextStyle(fontSize: 20),),
+    )),
+    Scaffold(body: Center(child: Text("settings",style: TextStyle(fontSize: 20),),
+    )),  ];
   int? _selectedIndex;
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    print("aaaa");
   }
 
   @override
@@ -35,19 +39,25 @@ class _RootState extends State<Root> {
           onTap: _onItemTapped,
           items: <BottomNavigationBarItem>[
             const BottomNavigationBarItem(
-              icon: Icon(Icons.queue_music),
+              icon: Icon(Icons.queue_music,size: 40,),
               label: 'マイリスト',
             ),
-            BottomNavigationBarItem(
-              icon: Image.asset('lib/assets/images/roulette.png'),
+             BottomNavigationBarItem(
+              icon:
+                   SizedBox(height:40,
+                    child: _selectedIndex == 1 ?
+                   Image.asset('lib/assets/images/roulette_selected.png')
+                        : Image.asset('lib/assets/images/roulette.png')
+                   ),
               label: 'ランダム',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.history),
+
+             const BottomNavigationBarItem(
+              icon: Icon(Icons.history,size: 40,),
               label: '履歴',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
+              icon: Icon(Icons.settings, size: 40,),
               label: '設定',
             ),
           ],

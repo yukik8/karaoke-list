@@ -35,6 +35,15 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+  flutter_native_splash: ^2.3.1
+  flutter_dotenv: ^5.1.0
+  http: ^1.1.0
+  shared_preferences: ^2.2.0
+  video_player: ^2.7.0
+  audioplayers: ^5.0.0
+  riverpod: ^2.3.6
+  flutter_riverpod: ^2.3.6
+  visibility_detector: ^0.4.0+2
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +70,9 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - lib/assets/images/roulette.png
+    - lib/assets/images/roulette_selected.png
+    - .env
+    - lib/assets/tenbyou.m4a
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
