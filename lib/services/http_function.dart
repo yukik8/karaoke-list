@@ -6,7 +6,7 @@ class HttpFunc {
   late http.Response response;
   Future<http.Response> httpGet(String url) async {
     WidgetsFlutterBinding.ensureInitialized();
-    final fetchedAccessToken =  'INSERT YOUR KEY';
+    final fetchedAccessToken =  'INSERT ACCESS TOKEN';
       response = await http.get(Uri.parse(url),
           headers: {'Authorization': 'Bearer $fetchedAccessToken'});
     return response;

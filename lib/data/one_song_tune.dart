@@ -4,24 +4,21 @@ class OneSongTune extends StateNotifier<List<String>> {
   // 引数に初期リストを入れる、なければ空のリスト
   OneSongTune() : super([]);
 
-  void addTune(String name) {
+  void addSongsTune(String name) {
     state = [...state, name];
   }
 
 
-  void deleteTune(String name) {
+  void deleteSongsTune(String name) {
     state = [
       for (final tune in state)
         if (tune != name) tune,
     ];  }
 
-  void deleteAllTunes() {
+  void deleteSongsAllTunes() {
     state = [];
   }
 
-  void updateSongs(List<String> newTunes) {
-    state = [for (final tune in newTunes) tune];
-  }
 }
 
 final oneTuneProvider = StateNotifierProvider<OneSongTune, List<String>>((ref) {

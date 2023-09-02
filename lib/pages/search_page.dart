@@ -31,7 +31,7 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    fetchFunction();
+    // fetchFunction();
     _scrollController!.addListener(_scrollListener);
   }
 
@@ -42,13 +42,13 @@ class _SearchPageState extends State<SearchPage> {
       double positionRate = _scrollController!.offset /
           _scrollController!.position.maxScrollExtent;
       const threshold = 0.9;
-      if (positionRate > threshold && !_isLoading) {
-        fetchFunction();
+      if (positionRate > threshold && !_isLoading && _pageNumbers < 5) {
+        fetchFunction(0);
       }
     }
   }
 
-  Future<void> fetchFunction() async {
+  Future<void> fetchFunction(int n) async {
     if (!_isLoading) {
       setState(() {
         _isEmpty = false;
@@ -56,16 +56,14 @@ class _SearchPageState extends State<SearchPage> {
         _pageNumbers++;
       });
       try {
-        print("onFieldSubmittedText: $onFieldSubmittedText");
-        newSearches = await apple.search(onFieldSubmittedText);
-        print(newSearches[0].name);
+        if(n==1){
+          setState(() {
+            _pageNumbers = 1;
+          });
+        }
+        newSearches = await apple.search(onFieldSubmittedText, _pageNumbers);
       } catch (e) {
         print("Error: $e");
-        // print("1");
-        // print(newSearches.);
-        // print("2");
-        // print(newSearches.albums.name);
-        // print("3");
         setState(() {
           hasError = true;
         });
@@ -83,7 +81,10 @@ class _SearchPageState extends State<SearchPage> {
       color: Colors.grey,
       backgroundColor: const Color(0xFFFFFFFF),
       onRefresh: () async{
-        await fetchFunction();
+        // setState(() {
+        //   _pageNumbers = 1;
+        // });
+        await fetchFunction(1);
       },
       child: ListView.builder(
         controller: _scrollController,
@@ -131,35 +132,42 @@ class _SearchPageState extends State<SearchPage> {
                     );
                   });
             },
-            child: Row(
+            child: Column(
               children: [
-               SizedBox(
-                 child: Image.network(
-            Song(id: items[index].id, name: items[index].name, previewUrl: items[index].previewUrl, artworkImgUrl: items[index].artworkImgUrl, artistName: items[index].artistName).artworkUrl(40))),
-                const SizedBox(
-                  width: 8,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(items[index].artistName,
-                        style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF828282)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                   SizedBox(
+                     child: Image.network(
+                Song(id: items[index].id, name: items[index].name, previewUrl: items[index].previewUrl, artworkImgUrl: items[index].artworkImgUrl, artistName: items[index].artistName).artworkUrl(40))),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(items[index].artistName,
+                            style: const TextStyle(
+                                fontSize: 12, color: Color(0xFF828282)),
+                          ),
+                          Text(
+                            items[index].name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 9,),
+                        ],
                       ),
-                      Text(
-                        items[index].name,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const Divider(height: 16),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+                const Divider(height: 10,thickness: 2,),
               ],
             ),
           );
@@ -214,7 +222,7 @@ class _SearchPageState extends State<SearchPage> {
           _pageNumbers = 0;
           _isEmpty = false;
         });
-        await fetchFunction();
+        await fetchFunction(0);
         if (fetchedSearches.isEmpty) {
           setState(() {
             _isEmpty = true;
@@ -283,7 +291,11 @@ class _SearchPageState extends State<SearchPage> {
                       horizontal: 16, vertical: 10),
                   child: _textField()),
             ),
-            const Divider(height: 0.5),
+            // Padding(
+            //   padding: const EdgeInsets.fromLTRB(13,0,13,0),
+            //   child: const Divider(height: 0.5,thickness: 2,),
+            // ),
+            Divider(height: 0.5,thickness: 1,),
             SizedBox(
               height: 8,
               child: Container(
@@ -292,7 +304,9 @@ class _SearchPageState extends State<SearchPage> {
             ),
             Expanded(
               child: Center(
-                  child: _isEmpty
+                  child:  onFieldSubmittedText == ''
+                      ?  SizedBox(child:  Text('検索ワードを入力してください。'),)
+                      : _isEmpty
                       ? _emptyView()
                       : _isLoading && _pageNumbers == 1
                       ? _loadingView()
@@ -300,7 +314,7 @@ class _SearchPageState extends State<SearchPage> {
             )
           ],
         ),
-      ),
+      )
     );
   }
 }

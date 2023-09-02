@@ -44,6 +44,7 @@ dependencies:
   riverpod: ^2.3.6
   flutter_riverpod: ^2.3.6
   visibility_detector: ^0.4.0+2
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:
@@ -72,7 +73,7 @@ flutter:
     - lib/assets/images/roulette.png
     - lib/assets/images/roulette_selected.png
     - .env
-    - lib/assets/tenbyou.m4a
+    - lib/assets/images/random_back.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

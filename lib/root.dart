@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:untitled/pages/random_page.dart';
-import 'package:untitled/pages/register_page.dart';
 import 'package:untitled/pages/my_list_page.dart';
-import 'package:untitled/pages/search_page.dart';
 
 class Root extends StatefulWidget {
-  const Root({super.key});
+  const Root({super.key, required this.page});
+  final int page;
 
   @override
   State<Root> createState() => _RootState();
 }
 
 class _RootState extends State<Root> {
-  static final _screens = [
+  static const _screens = [
     MyListPage(),
     RandomPage(),
     Scaffold(body: Center(child: Text("settings",style: TextStyle(fontSize: 20),),
@@ -32,10 +31,10 @@ class _RootState extends State<Root> {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        body: _screens[_selectedIndex ?? 0],
+        body: _screens[_selectedIndex ?? widget.page],
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: Colors.white,
-          currentIndex: _selectedIndex ?? 0,
+          currentIndex: _selectedIndex ?? widget.page,
           onTap: _onItemTapped,
           items: <BottomNavigationBarItem>[
             const BottomNavigationBarItem(
@@ -44,11 +43,13 @@ class _RootState extends State<Root> {
             ),
              BottomNavigationBarItem(
               icon:
-                   SizedBox(height:40,
-                    child: _selectedIndex == 1 ?
-                   Image.asset('lib/assets/images/roulette_selected.png')
-                        : Image.asset('lib/assets/images/roulette.png')
-                   ),
+                 SizedBox(height:40,
+                    child: Padding(
+                     padding: const EdgeInsets.all(2),
+                     child: _selectedIndex == 1 ?Image.asset('lib/assets/images/roulette_selected.png')
+                           : Image.asset('lib/assets/images/roulette.png')
+                    )
+                 ),
               label: 'ランダム',
             ),
 

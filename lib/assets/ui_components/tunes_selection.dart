@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:untitled/data/one_song_tune.dart';
 import 'package:untitled/data/song_notifier.dart';
 
-import '../../data/tune_notifier.dart';
+import '../../data/tune_name.dart';
 
 class TunesSelectionPage extends ConsumerStatefulWidget {
   const TunesSelectionPage({Key? key}) : super(key: key);
@@ -51,11 +51,11 @@ class TunesSelectionPageState extends ConsumerState<TunesSelectionPage> {
                 if (isSelected) {
                   // すでに選択されていれば取り除く
                   selectedTunes.remove(tune);
-                  ref.read(oneTuneProvider.notifier).deleteTune(tune);
+                  ref.read(oneTuneProvider.notifier).deleteSongsTune(tune);
                 } else {
                   // 選択されていなければ追加する
                   selectedTunes.add(tune);
-                  ref.read(oneTuneProvider.notifier).addTune(tune);
+                  ref.read(oneTuneProvider.notifier).addSongsTune(tune);
                 }
                 setState(() {});
               },
@@ -123,8 +123,9 @@ class TunesSelectionPageState extends ConsumerState<TunesSelectionPage> {
             onFieldSubmitted: (value)  {
               setState(() {
                 onFieldSubmittedText = value;
-                ref.read(tuneProvider.notifier).addTune(onFieldSubmittedText);
-                print(onFieldSubmittedText);
+                if(onFieldSubmittedText != "") {
+                  ref.read(tuneProvider.notifier).addTune(onFieldSubmittedText);
+                }
               });
             },
           ),
