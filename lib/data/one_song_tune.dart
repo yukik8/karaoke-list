@@ -16,7 +16,7 @@ class OneSongTune extends StateNotifier<List<String>> {
     ];  }
 
   void deleteSongsAllTunes() {
-    state = [];
+     state = [];
   }
 
 }

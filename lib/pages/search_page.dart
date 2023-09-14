@@ -1,10 +1,6 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-
 import 'package:untitled/services/fetch_function.dart';
-
 import '../models/song.dart';
-import '../root.dart';
 import 'register_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -240,14 +236,14 @@ class _SearchPageState extends State<SearchPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              '検索にマッチする記事はありませんでした',
+              '検索にマッチする曲はありませんでした。',
               style: TextStyle(
                 fontSize: 14,
               ),
             ),
             SizedBox(height: 17),
             Text(
-              '検索条件を変えるなどして再度検索をしてください',
+              '検索条件を変え、再度検索します。',
               style: TextStyle(
                 fontSize: 12,
                 color: Color(0xFF828282),
@@ -295,7 +291,7 @@ class _SearchPageState extends State<SearchPage> {
             //   padding: const EdgeInsets.fromLTRB(13,0,13,0),
             //   child: const Divider(height: 0.5,thickness: 2,),
             // ),
-            Divider(height: 0.5,thickness: 1,),
+            const Divider(height: 0.5,thickness: 1,),
             SizedBox(
               height: 8,
               child: Container(
@@ -303,14 +299,22 @@ class _SearchPageState extends State<SearchPage> {
               ),
             ),
             Expanded(
-              child: Center(
-                  child:  onFieldSubmittedText == ''
-                      ?  SizedBox(child:  Text('検索ワードを入力してください。'),)
-                      : _isEmpty
-                      ? _emptyView()
-                      : _isLoading && _pageNumbers == 1
-                      ? _loadingView()
-                      : _listView(fetchedSearches)),
+              child: onFieldSubmittedText == ''
+                  ?  const SizedBox(
+                child:  Padding(
+                  padding: EdgeInsets.fromLTRB(0,50,0,0),
+                  child: Text('検索ワードを入力します。',
+                  style: TextStyle(
+                      // color: Color(0xff333333),
+                    fontFamily: 'Noto_Sans_JP',
+                  ),
+                  ),
+                ),)
+                  : _isEmpty
+                  ? _emptyView()
+                  : _isLoading && _pageNumbers == 1
+                  ? _loadingView()
+                  : _listView(fetchedSearches),
             )
           ],
         ),

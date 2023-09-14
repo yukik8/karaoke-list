@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:untitled/data/song_notifier.dart';
+import 'package:untitled/pages/list_edit_page.dart';
+import 'package:untitled/pages/list_search_page.dart';
 import 'package:untitled/pages/my_song_page.dart';
 import 'package:untitled/pages/search_page.dart';
-import 'package:untitled/pages/sing_register_page.dart';
-import 'package:visibility_detector/visibility_detector.dart';
+import '../data/one_song_tune.dart';
 import '../data/register_notifier.dart';
-import '../data/season_notifier.dart';
-import '../data/songs_season.dart';
-import '../data/tune_name.dart';
-import '../models/song.dart';
-import 'package:untitled/main.dart';
-import 'package:collection/collection.dart';
 
 
 
@@ -32,11 +26,6 @@ enum SortType {
 
 
 class MyListPageState extends ConsumerState<MyListPage> {
-  var showIndex = [];
-  List<String> tunesList = [];
-  List<List<String>> songsTunesList = [];
-
-
 
   @override
   void initState() {
@@ -54,8 +43,7 @@ class MyListPageState extends ConsumerState<MyListPage> {
 
   @override
   Widget build(BuildContext context) {
-    tunesList = ref.watch(tuneProvider);
-    final data = ref.watch(dataProvider);
+    var data = ref.watch(dataProvider);
     final sortTypeProvider = StateProvider<SortType>(
       // ソートの種類 name を返します。これがデフォルトのステートとなります。
           (ref) => SortType.name,
@@ -66,11 +54,14 @@ class MyListPageState extends ConsumerState<MyListPage> {
       final type = ref.watch(sortTypeProvider);
       switch (type) {
         case SortType.name:
-          return data.sorted((a, b) => a[0].name.compareTo(b[0].name));
+          data.sort((a, b) => a[0].name.compareTo(b[0].name));
+          return data;
         case SortType.artistName:
-          return data.sorted((a, b) => a[0].artistName.compareTo(b[0].artistName));
+          data.sort((a, b) => a[0].artistName.compareTo(b[0].artistName));
+          return data;
         case SortType.time:
-          return data.sorted((a, b) => a[1].compareTo(b[1]));
+          data.sort((a, b) => a[1].compareTo(b[1]));
+          return data;
       }
     });
 
@@ -136,7 +127,7 @@ class MyListPageState extends ConsumerState<MyListPage> {
             onPressed: (){
               Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SearchPage()));
+                  MaterialPageRoute(builder: (context) => const ListSearchPage()));
             },
           ),
         ],
@@ -161,8 +152,8 @@ class MyListPageState extends ConsumerState<MyListPage> {
                   if (index > data.length) {
                     return const SizedBox.shrink(); // 何も表示しない場合は空のSizedBoxを返す
                   }
-                  final sortedData = ref.watch(productsProvider);
-
+                  // ref.read(dataProvider.notifier).state = ref.watch(productsProvider);
+                  data = ref.watch(productsProvider);
                   return SizedBox(
                     height: 68,
                     child: ElevatedButton(
@@ -199,7 +190,7 @@ class MyListPageState extends ConsumerState<MyListPage> {
                             child: Row(
                               children: [
                                 Image.network(
-                                    sortedData[index][0].artworkUrl(40)),
+                                    data[index][0].artworkUrl(40)),
                                 const SizedBox(
                                   width: 8,
                                 ),
@@ -208,13 +199,13 @@ class MyListPageState extends ConsumerState<MyListPage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(sortedData[index][0].artistName,
+                                      Text(data[index][0].artistName,
                                         style: const TextStyle(
-                                            fontSize: 12, color: Color(0xFF828282)),
+                                            fontSize: 11, color: Color(0xFF828282)),
                                         maxLines: 1,
                                       ),
                                         Text(
-                                          sortedData[index][0].name,
+                                          data[index][0].name,
                                           style: const TextStyle(
                                             fontSize: 14,
                                             color: Colors.black,
@@ -232,7 +223,7 @@ class MyListPageState extends ConsumerState<MyListPage> {
                                     alignment: WrapAlignment.end, // 折り返した要素の配置位置を決める
                                     runSpacing: 5,
                                     spacing: 5,
-                                    children: sortedData[index][2].map<Widget>((tune) {
+                                    children: data[index][2].map<Widget>((tune) {
                                       // selectedTags の中に自分がいるかを確かめる
                                       return InkWell(
                                         borderRadius: const BorderRadius.all(Radius.circular(20)),
@@ -245,12 +236,12 @@ class MyListPageState extends ConsumerState<MyListPage> {
                                               width: 2,
                                               color: Colors.pink,
                                             ),
-                                            color: Colors.pink,
+                                            // color: Colors.pink,
                                           ),
                                           child: Text(
                                             tune,
                                             style: const TextStyle(
-                                              color: Colors.white,
+                                              color: Colors.black,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 7,
                                             ),
@@ -260,44 +251,77 @@ class MyListPageState extends ConsumerState<MyListPage> {
                                     }).toList(),
                                   ),
                                 ),
-                                // SizedBox(
-                                //   width: 20,
-                                //   child: InkWell(
-                                //         borderRadius: const BorderRadius.all(Radius.circular(20)),
-                                //         child: AnimatedContainer(
-                                //           duration: const Duration(milliseconds: 200),
-                                //           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                //           decoration: BoxDecoration(
-                                //             borderRadius: const BorderRadius.all(Radius.circular(32)),
-                                //             border: Border.all(
-                                //               width: 2,
-                                //               color: Colors.pink,
-                                //             ),
-                                //             color: Colors.pink,
-                                //           ),
-                                //           child: Text(
-                                //             ref.watch(seasonProvider.notifier).state[index] == 0
-                                //             ?'春'
-                                //             : ref.watch(seasonProvider.notifier).state[index] == 1
-                                //             ?'夏'
-                                //             : ref.watch(seasonProvider.notifier).state[index] == 2
-                                //                 ?'秋'
-                                //                 : '冬',
-                                //
-                                //             style: TextStyle(
-                                //               color: Colors.white,
-                                //               fontWeight: FontWeight.bold,
-                                //               fontSize: 7,
-                                //             ),))
-                                //     ),
-                                //   ),
+                                const SizedBox(width: 5,),
+                                SizedBox(
+                                  width: 20,
+                                  child: data[index][5]!=null ?
+                                  InkWell(
+                                        borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 200),
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            borderRadius: const BorderRadius.all(Radius.circular(32)),
+                                            border: Border.all(
+                                              width: 2,
+                                              color: data[index][5] == 0
+                                                  ?const Color(0xfff19ec2)
+                                                  : data[index][5] == 1
+                                                  ?const Color(0xff00a0e9)
+                                                  : data[index][5] == 2
+                                                  ?const Color(0xfff39800)
+                                                  :const Color(0xff84ccc9)
+                                            ),
+                                            color: data[index][5] == 0
+                                                ?const Color(0xfff19ec2)
+                                                : data[index][5] == 1
+                                                ?const Color(0xff00a0e9)
+                                                : data[index][5] == 2
+                                                ?const Color(0xfff39800)
+                                                :const Color(0xff84ccc9)
+                                          ),
+                                          child: Text(
+                                            data[index][5] == 0
+                                            ?'春'
+                                            : data[index][5] == 1
+                                            ?'夏'
+                                            : data[index][5] == 2
+                                                ?'秋'
+                                                : '冬',
 
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 7,
+                                            ),))
+                                    )
+                                      :const SizedBox.shrink()
+                                  ),
+                                const SizedBox(width: 5,),
+
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text("key",
+                                      style: TextStyle(
+                                        fontSize:11,
+                                      ),
+                                    ),
+                                    Text(data[index][4],
+                                      style: const TextStyle(
+                                        fontSize:18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 IconButton(
-                                    icon: const Icon(Icons.delete),
+                                    icon: const Icon(Icons.more_vert),
                                     onPressed: () {
-                                      ref.read(dataProvider.notifier).deleteData(
-                                          sortedData[index]
-                                      );
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) =>
+                                              EditPage(index: index, preUrl: data[index][0].previewUrl)));
+                                      ref.read(oneTuneProvider.notifier).deleteSongsAllTunes();//   break\;\n
                                     }),
                               ],
                             ),

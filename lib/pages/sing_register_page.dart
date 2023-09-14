@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/history_notifier.dart';
 import '../data/register_notifier.dart';
 
 
@@ -33,7 +34,7 @@ class SingRegisterPageState extends ConsumerState<SingRegisterPage> {
         autocorrect: true,
         controller: scoreController,
         decoration: InputDecoration(
-          hintText: 'Search',
+          hintText: 'Score',
           suffixIcon: IconButton(
             onPressed: () => scoreController.clear(), //リセット処理
             icon: const Icon(Icons.clear),
@@ -79,17 +80,17 @@ class SingRegisterPageState extends ConsumerState<SingRegisterPage> {
           .size
           .width * 0.8,
       child: TextFormField(
+        maxLines: null,
         autocorrect: true,
         controller: textController,
         decoration: InputDecoration(
-          hintText: 'Search',
-          prefixIcon: const Icon(Icons.search),
+          hintText: 'Note',
           suffixIcon: IconButton(
             onPressed: () => textController.clear(), //リセット処理
             icon: const Icon(Icons.clear),
           ),
           isDense: true,
-          contentPadding: const EdgeInsets.fromLTRB(100, 100, 100, 10),
+          contentPadding: const EdgeInsets.fromLTRB(30, 100, 100, 10),
           hintStyle: const TextStyle(
             color: Color(0x993C3C43),
             fontSize: 17,
@@ -182,9 +183,11 @@ class SingRegisterPageState extends ConsumerState<SingRegisterPage> {
                       backgroundColor: Colors.orange[200],
                     ),
                     onPressed: () {
+                      Navigator.pop(context,);
                       // int num = ref.watch(dataProvider.notifier).state[widget.index][4];
-                      ref.read(dataProvider.notifier).state[widget.index][3].add([onChangedScore,onChangedText,DateTime.now()]);
-                      print(ref.watch(dataProvider.notifier).state[widget.index][3]);
+                      ref.read(dataProvider)[widget.index][3].add([onChangedScore,onChangedText,DateTime.now()]);
+                      ref.read(historyProvider.notifier).addHistory([[onChangedScore,onChangedText,DateTime.now()],data[widget.index][0]]);
+
                       // ref.read(dataProvider.notifier).state[widget.index][4]++;
                       // print(ref.watch(dataProvider.notifier).state[widget.index][4]);
 

@@ -1,3 +1,4 @@
+import 'package:untitled/data/season_notifier.dart';
 import 'package:untitled/pages/final_register_page.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
@@ -28,9 +29,6 @@ class RegisterPageState extends ConsumerState<RegisterPage> {
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.preUrl))..initialize().then((_) {
       // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
       setState(() {});
-    }).catchError((error) {
-      // エラーログを出力して、エラーを確認できるようにする
-      print('Error while initializing VideoPlayerController: $error');
     });
   }
 
@@ -65,7 +63,7 @@ class RegisterPageState extends ConsumerState<RegisterPage> {
                           name: widget.name,
                           previewUrl: widget.preUrl,
                           artworkImgUrl: widget.imgUrl,
-                          artistName: widget.artistName).artworkUrl(340)),
+                          artistName: widget.artistName).artworkUrl(250)),
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: Padding(
@@ -80,14 +78,14 @@ class RegisterPageState extends ConsumerState<RegisterPage> {
                           Text(
                             widget.name,
                             style: const TextStyle(
-                              fontSize: 26,
+                              fontSize: 24,
                               color: Colors.black,
                             ),),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 100,),
+                  const SizedBox(height: 20,),
                       VideoProgressIndicator(
                         _controller,
                         allowScrubbing: true,
@@ -117,36 +115,30 @@ class RegisterPageState extends ConsumerState<RegisterPage> {
                           ),
                         ],
                       ),
-                  SizedBox(height: 10,),
+                  const SizedBox(height: 10,),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange[200],
                     ),
                     onPressed: (){
-                      ref.read(oneTuneProvider.notifier).deleteSongsAllTunes();//   break;
-                      final songState = ref.watch(dataProvider.notifier).state;
+                      _controller.pause();
+                      ref.read(oneTuneProvider.notifier).deleteSongsAllTunes();
+                      ref.read(seasonProvider.notifier).deleteSeason();
+                      final songState = ref.watch(dataProvider);
                       int i;
-                      print("length: ${songState.length}");
                       for(i=0; i<songState.length; i++) {
-                        print(songState[i][0].id);
-                        print(Song(id: widget.id,
-                            name: widget.name,
-                            previewUrl: widget.preUrl,
-                            artworkImgUrl: widget.imgUrl,
-                            artistName: widget.artistName).id);
                         if (Song(id: widget.id,
                             name: widget.name,
                             previewUrl: widget.preUrl,
                             artworkImgUrl: widget.imgUrl,
                             artistName: widget.artistName).id == songState[i][0].id) {
-                          print("match");
                           showDialog(context: context,
                               builder: (_) {
                                 return AlertDialog(
-                                  title: Text('この曲はすでに追加されています'),
+                                  title: const Text('この曲はすでに追加されています'),
                                   actions: <Widget>[
                                     GestureDetector(
-                                      child: Text('戻る'),
+                                      child: const Text('戻る'),
                                       onTap: () {
                                         Navigator.pop(context);
                                       },
@@ -171,7 +163,7 @@ class RegisterPageState extends ConsumerState<RegisterPage> {
                           print(s);
                         }
                       }
-                  }, child: Text(
+                  }, child: const Text(
                     "登録に進む",
                     style: TextStyle(
                       fontSize: 22,

@@ -1,15 +1,11 @@
 import 'package:untitled/assets/ui_components/tunes_selection.dart';
 import 'package:untitled/data/one_song_tune.dart';
 import 'package:untitled/data/season_notifier.dart';
-import 'package:untitled/main.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:untitled/data/song_notifier.dart';
 import '../assets/ui_components/radio_button.dart';
 import '../data/register_notifier.dart';
-import '../data/songs_season.dart';
 import '../models/song.dart';
-import 'package:intl/intl.dart';
 
 import '../root.dart';
 
@@ -28,12 +24,63 @@ class FinalRegisterPage extends ConsumerStatefulWidget {
 
 class FinalRegisterPageState extends ConsumerState<FinalRegisterPage> {
   List<String> tunes = [];
-  var selectedTunes = <String>[];
+  String? onChangedText = '';
+  String? onFieldSubmittedText = '';
+  final textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
  }
+
+  Widget _textField() {
+    return SizedBox(
+      width: MediaQuery
+          .of(context)
+          .size
+          .width * 0.4,
+      child: TextFormField(
+        autocorrect: true,
+        controller: textController,
+        decoration: InputDecoration(
+          hintText: 'key',
+          suffixIcon: IconButton(
+            onPressed: () => textController.clear(), //リセット処理
+            icon: const Icon(Icons.clear),
+          ),
+          isDense: true,
+          contentPadding: const EdgeInsets.fromLTRB(20, 10, 10, 10),
+          hintStyle: const TextStyle(
+            color: Color(0x993C3C43),
+            fontSize: 17,
+          ),
+          filled: true,
+          fillColor: const Color(0x1F767680),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(100),
+            borderSide: const BorderSide(color: Color(0x1F767680), width: 3),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(100),
+            borderSide: const BorderSide(color: Color(0x1F767680), width: 0),
+          ),
+        ),
+        // フィールドのテキストが変更される度に呼び出される
+        onChanged: (value) {
+          setState(() {
+            onChangedText = value;
+          });
+        },
+        // ユーザーがフィールドのテキストの編集が完了したことを示したときに呼び出される
+        onFieldSubmitted: (value) async {
+          setState(() {
+            onFieldSubmittedText = value;
+          });
+        },
+      ),
+    );
+  }
+
 
   Widget registerButton(){
   return ElevatedButton(
@@ -47,34 +94,17 @@ class FinalRegisterPageState extends ConsumerState<FinalRegisterPage> {
         MaterialPageRoute(
             builder: (context) => const Root(page: 0)));
 
-  final List<String> tunes = await ref.watch(oneTuneProvider.notifier).state;
-
-
-
-    // if(i==400){
-      // ref.read(songProvider.notifier).addSong(
-      //     widget.id,
-      //     widget.name,
-      //     widget.preUrl,
-      //     widget.imgUrl,
-      //     widget.artistName);
-      print("b");
-      // final List<String> tunes = ref.watch(oneTuneProvider.notifier).state;
-      // ref.read(songsTuneProvider.notifier).addSongsTune(tunes);
+  final List<String> tunes = await ref.watch(oneTuneProvider);
       DateTime now = DateTime.now();
-      print(now);
-      print(tunes);
-      ref.read(dataProvider.notifier).addData([
+    final int? season = await ref.watch(seasonProvider);
+    ref.read(dataProvider.notifier).addData([
         Song(id: widget.id,
           name: widget.name,
           previewUrl: widget.preUrl,
           artworkImgUrl: widget.imgUrl,
-          artistName: widget.artistName), now, tunes,[[]],0]);
-      print(ref.watch(dataProvider.notifier).state[0][3]);
-    // }
-  // }
-
-  }, child: Text("登録",
+          artistName: widget.artistName), now, tunes,[[]],onChangedText,season]);
+    // print(ref.watch(dataProvider.notifier).state[0][3]);
+  }, child: const Text("登録",
   style: TextStyle(fontSize: 30,
   color: Colors.black,),),);
 }
@@ -91,65 +121,77 @@ class FinalRegisterPageState extends ConsumerState<FinalRegisterPage> {
           ),
           backgroundColor: Colors.white,
         ),
-        body:Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Row(
+        body:SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(25,0,25,0),
+            child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Image.network(
-                              Song(id: widget.id,
-                                  name: widget.name,
-                                  previewUrl: widget.preUrl,
-                                  artworkImgUrl: widget.imgUrl,
-                                  artistName: widget.artistName).artworkUrl(80)),
-                        ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(widget.artistName,
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Color(0xFF828282)),
-                                ),
-                                Text(
-                                  widget.name,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    color: Colors.black,
-                                  ),
-                                  maxLines: 3,
-                                ),
-                              ],
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Image.network(
+                                  Song(id: widget.id,
+                                      name: widget.name,
+                                      previewUrl: widget.preUrl,
+                                      artworkImgUrl: widget.imgUrl,
+                                      artistName: widget.artistName).artworkUrl(80)),
                             ),
-                          ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(widget.artistName,
+                                      style: const TextStyle(
+                                          fontSize: 12, color: Color(0xFF828282)),
+                                    ),
+                                    Text(
+                                      widget.name,
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        color: Colors.black,
+                                      ),
+                                      maxLines: 3,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10,),
+                        const TunesSelectionPage(),
+                        const SizedBox(height: 60,),
+                        const Text("歌いやすいキー"),
+                        _textField(),
+                        const SizedBox(height: 30,),
+                        Stack(
+                          alignment: const Alignment(0, 0),
+                          children: [
+                            SizedBox(width:200,
+                                child: ref.watch(seasonProvider.notifier).state==0? Image.asset('lib/assets/images/spring.webp')
+                                    : ref.watch(seasonProvider.notifier).state==1? Image.asset('lib/assets/images/summer2.webp')
+                                    : ref.watch(seasonProvider.notifier).state==2? Image.asset('lib/assets/images/fall.webp')
+                                    : ref.watch(seasonProvider.notifier).state==3? Image.asset('lib/assets/images/winter.webp')
+                                    :SizedBox.shrink()
+                            ),
+                            const CustomRadioButton(),
+                          ],
+                        ),
+                        const SizedBox(height: 60,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            registerButton(),
+                          ],
+                        ),
+                        const SizedBox(height: 30,),
                       ],
                     ),
-                    const SizedBox(height: 10,),
-                    const TunesSelectionPage(),
-                    const SizedBox(height: 60,),
-                    const CustomRadioButton(),
-                    const SizedBox(height: 60,),
-                    registerButton(),
-                    // 登録した曲一覧を表示するウィジェット
-                    const SizedBox(height: 30,),
-                    // Expanded(
-                    //   child: Text("登録完了！",style: TextStyle(fontSize: 30),),
-                    //   // child: ListView.builder(
-                    //   //   itemCount: songs.length,
-                    //   //   itemBuilder: (context, index) {
-                    //   //     final song = songs.elementAt(index);
-                    //   //     return ListTile(
-                    //   //       title: Text(song.name),
-                    //   //       subtitle: Text(song.artistName),
-                    //   //     );
-                    //   //   },
-                    //   // ),
-                    // ),
-                  ],
-                ),
+          ),
+        ),
     );
   }
 }
