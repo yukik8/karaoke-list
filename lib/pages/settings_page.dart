@@ -63,14 +63,6 @@ class _SettingPageState extends State<SettingPage> {
               color: const Color(0xffFAFAFA),
             ),
           ),
-          const Text(
-            '　アプリ情報',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Color(0xff828282),
-            ),
-          ),
           const SizedBox(
             height: 8,
           ),
