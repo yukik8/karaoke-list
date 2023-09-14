@@ -63,22 +63,24 @@ class MySongPageState extends ConsumerState<MySongPage> {
                       padding: const EdgeInsets.fromLTRB(20,20,40,10),
                       child: Row(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(data[widget.index][0].artistName,
-                                style: const TextStyle(
-                                    fontSize: 14, color: Color(0xFF828282)),
-                              ),
-                              Text(
-                                data[widget.index][0].name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  color: Color(0xff333333),
-                                ),),
-                            ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(data[widget.index][0].artistName,
+                                  style: const TextStyle(
+                                      fontSize: 14, color: Color(0xFF828282)),
+                                ),
+                                Text(
+                                  data[widget.index][0].name,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    color: Color(0xff333333),
+                                  ),),
+                              ],
+                            ),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           data[widget.index][5] !=null?
                           Row(
                             children: [
