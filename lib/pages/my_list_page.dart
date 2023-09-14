@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:untitled/data/drop_down_notifier.dart';
 import 'package:untitled/pages/list_edit_page.dart';
 import 'package:untitled/pages/list_search_page.dart';
 import 'package:untitled/pages/my_song_page.dart';
@@ -44,29 +45,6 @@ class MyListPageState extends ConsumerState<MyListPage> {
   @override
   Widget build(BuildContext context) {
     var data = ref.watch(dataProvider);
-    final sortTypeProvider = StateProvider<SortType>(
-      // ソートの種類 name を返します。これがデフォルトのステートとなります。
-          (ref) => SortType.name,
-    );
-
-
-    final productsProvider = Provider<List<List<dynamic>>>((ref) {
-      final type = ref.watch(sortTypeProvider);
-      switch (type) {
-        case SortType.name:
-          data.sort((a, b) => a[0].name.compareTo(b[0].name));
-          return data;
-        case SortType.artistName:
-          data.sort((a, b) => a[0].artistName.compareTo(b[0].artistName));
-          return data;
-        case SortType.time:
-          data.sort((a, b) => a[1].compareTo(b[1]));
-          return data;
-      }
-    });
-
-    // final listSong = ref.watch(productsProvider);
-
 
 
     return Scaffold(
@@ -87,9 +65,26 @@ class MyListPageState extends ConsumerState<MyListPage> {
         ),
         actions: [
           DropdownButton<SortType>(
-            value: ref.watch(sortTypeProvider),
+            value: ref.watch(dropProvider),
             onChanged: (value) {
-             ref.read(sortTypeProvider.notifier).state = value!;
+              ref.read(dropProvider.notifier).changeDrop(value);
+              final productsProvider = Provider<List<List<dynamic>>>((ref) {
+                final type = value ?? SortType.name;
+                switch (type) {
+                  case SortType.name:
+                    data.sort((a, b) => a[0].name.compareTo(b[0].name));
+                    return data;
+                  case SortType.artistName:
+                    data.sort((a, b) => a[0].artistName.compareTo(b[0].artistName));
+                    return data;
+                  case SortType.time:
+                    data.sort((a, b) => a[1].compareTo(b[1]));
+                    return data;
+                }
+              });
+              setState(() {
+                data = ref.watch(productsProvider);
+              });
             },
             items: const [
               DropdownMenuItem(
@@ -153,7 +148,7 @@ class MyListPageState extends ConsumerState<MyListPage> {
                     return const SizedBox.shrink(); // 何も表示しない場合は空のSizedBoxを返す
                   }
                   // ref.read(dataProvider.notifier).state = ref.watch(productsProvider);
-                  data = ref.watch(productsProvider);
+                  // data = ref.watch(productsProvider);
                   return SizedBox(
                     height: 68,
                     child: ElevatedButton(
