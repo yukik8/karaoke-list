@@ -167,19 +167,7 @@ class FinalRegisterPageState extends ConsumerState<FinalRegisterPage> {
                         const Text("歌いやすいキー"),
                         _textField(),
                         const SizedBox(height: 30,),
-                        Stack(
-                          alignment: const Alignment(0, 0),
-                          children: [
-                            SizedBox(width:200,
-                                child: ref.watch(seasonProvider.notifier).state==0? Image.asset('lib/assets/images/spring.webp')
-                                    : ref.watch(seasonProvider.notifier).state==1? Image.asset('lib/assets/images/summer2.webp')
-                                    : ref.watch(seasonProvider.notifier).state==2? Image.asset('lib/assets/images/fall.webp')
-                                    : ref.watch(seasonProvider.notifier).state==3? Image.asset('lib/assets/images/winter.webp')
-                                    :SizedBox.shrink()
-                            ),
-                            const CustomRadioButton(),
-                          ],
-                        ),
+                        const CustomRadioButton(),
                         const SizedBox(height: 60,),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,

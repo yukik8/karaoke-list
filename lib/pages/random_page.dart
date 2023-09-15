@@ -45,80 +45,61 @@ class MyListPageState extends ConsumerState<RandomPage> {
         ),
         automaticallyImplyLeading: false,
       ),
-      body: Stack(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Container(
-          //   alignment: Alignment.center,
-          //   decoration: const BoxDecoration(
-          //     image: DecorationImage(
-          //       image: AssetImage('lib/assets/images/random_back.jpg'),
-          //       fit: BoxFit.cover,
-          //     ),
-          //   ),
-          // ),
-          // Container(
-          //   alignment: Alignment.center,
-          //   decoration: const BoxDecoration(
-          //     color: Color(0x33000000),
-          //   ),
-          // ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("今歌う１曲を決める",
-                style: TextStyle(
-                    fontSize: 25,
-                  fontFamily: 'Noto_Sans_JP',
-                  color: Color(0xff333333),
-                ),),
-              const SizedBox(height: 30),
-              SizedBox(
-                          height: 80,
-                          child: ElevatedButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.white),
-                              elevation: MaterialStateProperty.all(10),
-                            ),
-                            onPressed: () {
-                              try {
-                                if(data.isEmpty) {
-                                  showDialog(context: context,
-                                      builder: (_) {
-                                        return AlertDialog(
-                                          title: const Text('マイリストページ左上部から\n歌いたい曲を追加しましょう。'),
-                                          actions: <Widget>[
-                                            GestureDetector(
-                                              child: const Padding(
-                                                padding: EdgeInsets.fromLTRB(0,0,30,20),
-                                                child: Text('戻る'),
-                                              ),
-                                              onTap: () {
-                                                Navigator.pop(context);
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      });
-                                }
-                                else {
-                                  int ran = random.nextInt(data.length);
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) =>
-                                          MySongPage(index: ran, preUrl: data[ran][0].previewUrl,),));
-                                }
-                                } catch (e, s) {
-                                print(s);
-                              }
-                            },
-                            child: const Text("クリック", style: TextStyle(fontSize: 25,color: Color(0xff333333)),)
-                          ),
+          const Text("今歌う１曲を決める",
+            style: TextStyle(
+                fontSize: 25,
+              fontFamily: 'Noto_Sans_JP',
+              color: Color(0xff333333),
+            ),),
+          const SizedBox(height: 30),
+          SizedBox(
+                      height: 80,
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.white),
+                          elevation: MaterialStateProperty.all(10),
                         ),
-              SplashPage(),
-            ]),
-        ],
-      ),
+                        onPressed: () {
+                          try {
+                            if(data.isEmpty) {
+                              showDialog(context: context,
+                                  builder: (_) {
+                                    return AlertDialog(
+                                      title: const Text('マイリストページ左上部から\n歌いたい曲を追加しましょう。'),
+                                      actions: <Widget>[
+                                        GestureDetector(
+                                          child: const Padding(
+                                            padding: EdgeInsets.fromLTRB(0,0,30,20),
+                                            child: Text('戻る'),
+                                          ),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  });
+                            }
+                            else {
+                              int ran = random.nextInt(data.length);
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) =>
+                                      MySongPage(index: ran, preUrl: data[ran][0].previewUrl,),));
+                            }
+                            } catch (e, s) {
+                            print(s);
+                          }
+                        },
+                        child: const Text("クリック", style: TextStyle(fontSize: 25,color: Color(0xff333333)),)
+                      ),
+                    ),
+          const SplashPage(),
+        ]),
             );
   }
 }
