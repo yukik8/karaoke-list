@@ -31,7 +31,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
-.env
+/GoogleService-Info.plist
 
 # Symbolication related
 app.*.symbols
