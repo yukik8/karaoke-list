@@ -31,7 +31,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
-GoogleService-Info.plist
+karaoke_list/GoogleService-Info.plist
 
 # Symbolication related
 app.*.symbols
