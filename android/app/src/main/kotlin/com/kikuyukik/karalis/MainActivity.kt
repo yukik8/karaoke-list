@@ -1,4 +1,4 @@
-package com.example.untitled
+package com.kikuyukik.karalis
 
 import io.flutter.embedding.android.FlutterActivity
 

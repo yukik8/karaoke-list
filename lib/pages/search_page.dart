@@ -59,7 +59,7 @@ class _SearchPageState extends State<SearchPage> {
         }
         newSearches = await apple.search(onFieldSubmittedText, _pageNumbers);
       } catch (e) {
-        print("Error: $e");
+        // print("Error: $e");
         setState(() {
           hasError = true;
         });
