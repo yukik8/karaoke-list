@@ -50,20 +50,17 @@ class _RootState extends State<Root> {
           onWillPop: () async => false,
           child: Scaffold(
             body: _screens[_selectedIndex ?? widget.page],
-            bottomNavigationBar: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // AdmobBanner(
-                //   adUnitId: AdMobService().getBannerAdUnitId(),
-                //   adSize: AdmobBannerSize.FULL_BANNER
-                // ),
-              Container(
-              alignment: Alignment.center,
-              width: 300,
-              height: 50,
-              child: adWidget,
-            ),
+            bottomNavigationBar:
+            // Column(
+            //   mainAxisAlignment: MainAxisAlignment.end,
+            //   mainAxisSize: MainAxisSize.min,
+            //   children: [
+            //   Container(
+            //   alignment: Alignment.center,
+            //   width: 300,
+            //   height: 50,
+            //   child: adWidget,
+            // ),
                 BottomNavigationBar(
                   backgroundColor: Colors.white,
                   currentIndex: _selectedIndex ?? widget.page,
@@ -99,8 +96,8 @@ class _RootState extends State<Root> {
                   unselectedFontSize: 10,
                   selectedFontSize: 10,
                 ),
-              ],
-            ),
+            //   ],
+            // ),
           ),
         ),
       ],

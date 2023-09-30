@@ -48,207 +48,205 @@ class MySongPageState extends ConsumerState<MySongPage> {
           ),
           backgroundColor: Colors.white,
         ),
-        body:SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.network(
-                  data[widget.index][0].artworkUrl(250)),
-              Row(
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20,20,40,10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(data[widget.index][0].artistName,
-                                  style: const TextStyle(
-                                      fontSize: 14, color: Color(0xFF828282)),
-                                ),
-                                Text(
-                                  data[widget.index][0].name,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    color: Color(0xff333333),
-                                  ),),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          data[widget.index][5] !=null?
-                          Row(
+        body:Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.network(
+                data[widget.index][0].artworkUrl(200)),
+            Row(
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20,20,40,10),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                data[widget.index][5] == 0
-                                    ?Icons.emoji_nature
-                                    : data[widget.index][5] == 1
-                                    ?Icons.surfing
-                                    : data[widget.index][5] == 2
-                                    ?Icons.forest_outlined
-                                    : Icons.ac_unit,
-                                  color: data[widget.index][5] == 0
-                                      ?const Color(0xfff19ec2)
-                                      : data[widget.index][5] == 1
-                                      ?const Color(0xff00a0e9)
-                                        : data[widget.index][5] == 2
-                                      ?const Color(0xfff39800)
-                                      :const Color(0xff84ccc9)
+                              Text(data[widget.index][0].artistName,
+                                style: const TextStyle(
+                                    fontSize: 14, color: Color(0xFF828282)),
                               ),
-                              Text(data[widget.index][5] == 0
-                                  ?"春"
-                                  : data[widget.index][5] == 1
-                                  ?"夏"
-                                  : data[widget.index][5] == 2
-                                  ?"秋"
-                                  : "冬",
-                                  style: TextStyle(
-                                      color: data[widget.index][5] == 0
-                                          ?const Color(0xfff19ec2)
-                                          : data[widget.index][5] == 1
-                                          ?const Color(0xff00a0e9)
-                                          : data[widget.index][5] == 2
-                                          ?const Color(0xfff39800)
-                                          :const Color(0xff84ccc9),
-                                    fontSize: 15
-                                  ),
-                                  )
+                              Text(
+                                data[widget.index][0].name,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  color: Color(0xff333333),
+                                ),),
                             ],
-                          )
-                              : const SizedBox.shrink()
-                        ],
-                      ),
+                          ),
+                        ),
+                        const Spacer(),
+                        data[widget.index][5] !=null?
+                        Row(
+                          children: [
+                            Icon(
+                              data[widget.index][5] == 0
+                                  ?Icons.emoji_nature
+                                  : data[widget.index][5] == 1
+                                  ?Icons.surfing
+                                  : data[widget.index][5] == 2
+                                  ?Icons.forest_outlined
+                                  : Icons.ac_unit,
+                                color: data[widget.index][5] == 0
+                                    ?const Color(0xfff19ec2)
+                                    : data[widget.index][5] == 1
+                                    ?const Color(0xff00a0e9)
+                                      : data[widget.index][5] == 2
+                                    ?const Color(0xfff39800)
+                                    :const Color(0xff84ccc9)
+                            ),
+                            Text(data[widget.index][5] == 0
+                                ?"春"
+                                : data[widget.index][5] == 1
+                                ?"夏"
+                                : data[widget.index][5] == 2
+                                ?"秋"
+                                : "冬",
+                                style: TextStyle(
+                                    color: data[widget.index][5] == 0
+                                        ?const Color(0xfff19ec2)
+                                        : data[widget.index][5] == 1
+                                        ?const Color(0xff00a0e9)
+                                        : data[widget.index][5] == 2
+                                        ?const Color(0xfff39800)
+                                        :const Color(0xff84ccc9),
+                                  fontSize: 15
+                                ),
+                                )
+                          ],
+                        )
+                            : const SizedBox.shrink()
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
 
-              Wrap(
-                  verticalDirection: VerticalDirection.down, //折り返した際、前後表示の順番
-                  alignment: WrapAlignment.end, // 折り返した要素の配置位置を決める
-                  runSpacing: 5,
-                  spacing: 5,
-                  children: data[widget.index][2].map<Widget>((tune) {
-                    // selectedTags の中に自分がいるかを確かめる
-                    return InkWell(
-                      borderRadius: const BorderRadius.all(Radius.circular(20)),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.all(Radius.circular(32)),
-                          border: Border.all(
-                            width: 2,
-                            color: Colors.pink,
-                          ),
-                          color: Colors.white,
+            Wrap(
+                verticalDirection: VerticalDirection.down, //折り返した際、前後表示の順番
+                alignment: WrapAlignment.end, // 折り返した要素の配置位置を決める
+                runSpacing: 5,
+                spacing: 5,
+                children: data[widget.index][2].map<Widget>((tune) {
+                  // selectedTags の中に自分がいるかを確かめる
+                  return InkWell(
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.all(Radius.circular(32)),
+                        border: Border.all(
+                          width: 2,
+                          color: Colors.pink,
                         ),
-                        child: Text(
-                          tune,
-                          style: const TextStyle(
-                            color: Color(0xff333333),
-                            // fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
+                        color: Colors.white,
+                      ),
+                      child: Text(
+                        tune,
+                        style: const TextStyle(
+                          color: Color(0xff333333),
+                          // fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  );
+                }).toList(),
+            ),
+            const SizedBox(height: 20,),
+            VideoProgressIndicator(
+              _controller,
+              allowScrubbing: true,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    _controller
+                        .seekTo(Duration.zero)
+                        .then((_) => _controller.play());
+                  },
+                  icon: const Icon(Icons.refresh),
+                ),
+                IconButton(
+                  onPressed: () {
+                    _controller.play();
+                  },
+                  icon: const Icon(Icons.play_arrow),
+                ),
+                IconButton(
+                  onPressed: () {
+                    _controller.pause();
+                  },
+                  icon: const Icon(Icons.pause),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10,),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange[200],
               ),
-              const SizedBox(height: 20,),
-              VideoProgressIndicator(
-                _controller,
-                allowScrubbing: true,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              onPressed: (){
+                try {
+                  _controller.pause();
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SingRegisterPage(index: widget.index)));
+                } catch (e, s) {
+                  print(s);
+                }
+              }, child: const Text("歌う！",
+              style: TextStyle(fontSize: 22,
+                color: Colors.black,),),),
+            // const Divider(height: 30,thickness: 2,),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(30,0,0,8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      _controller
-                          .seekTo(Duration.zero)
-                          .then((_) => _controller.play());
-                    },
-                    icon: const Icon(Icons.refresh),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      _controller.play();
-                    },
-                    icon: const Icon(Icons.play_arrow),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      _controller.pause();
-                    },
-                    icon: const Icon(Icons.pause),
-                  ),
+                  Text("履歴"),
                 ],
               ),
-              const SizedBox(height: 10,),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange[200],
-                ),
-                onPressed: (){
-                  try {
-                    _controller.pause();
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SingRegisterPage(index: widget.index)));
-                  } catch (e, s) {
-                    print(s);
-                  }
-                }, child: const Text("歌う！",
-                style: TextStyle(fontSize: 22,
-                  color: Colors.black,),),),
-              // const Divider(height: 30,thickness: 2,),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(30,0,0,8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text("履歴"),
-                  ],
-                ),
-              ),
-              // const Divider(height: 15,thickness: 2,),
-              data[widget.index][3].isNotEmpty ?
-              SizedBox(
-                height: 86,
-                child: ListView.builder(
-                  // reverse: true,
-                    itemCount: data[widget.index][3].length,
-                    itemBuilder: (context, index) {
-                      if (index > data[widget.index][3].length || data[widget.index][3][index].isEmpty) {
-                        return const SizedBox.shrink(); // 何も表示しない場合は空のSizedBoxを返す
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(8,0,8,0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20,),
-                            Text("得点：${data[widget.index][3][index][0]}"),
-                            Text("メモ：${data[widget.index][3][index][1]}"),
-                            Text("日付：${DateFormat('yyyy年M月d日').format(data[widget.index][3][index][2])}"),
-                            const Divider(height: 2,thickness: 2,)
-                          ],
-                        ),
-                      );
-                  }
-                  ,),
-              )
-                  : const Text("まだ歌った履歴がありません")
-            ]
+            ),
+            // const Divider(height: 15,thickness: 2,),
+            data[widget.index][3].isNotEmpty ?
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                // reverse: true,
+                  itemCount: data[widget.index][3].length,
+                  itemBuilder: (context, index) {
+                    if (index > data[widget.index][3].length || data[widget.index][3][index].isEmpty) {
+                      return const SizedBox.shrink(); // 何も表示しない場合は空のSizedBoxを返す
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(8,0,8,0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20,),
+                          Text("得点：${data[widget.index][3][index][0]}"),
+                          Text("メモ：${data[widget.index][3][index][1]}"),
+                          Text("日付：${DateFormat('yyyy年M月d日').format(data[widget.index][3][index][2])}"),
+                          const Divider(height: 2,thickness: 2,)
+                        ],
+                      ),
+                    );
+                }
+                ,),
+            )
+                : const Text("まだ歌った履歴がありません")
+          ]
 
-          ),
         )
     );
   }
