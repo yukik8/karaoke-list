@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:untitled/root.dart';
+import 'package:untitled/pages/login_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
 
@@ -32,7 +34,22 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      home: const Root(page: 0,),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xffC57E14)),
+              ),
+            );
+          }
+          if (snapshot.hasData && !snapshot.data!.isAnonymous) {
+            return Root(key: ValueKey(snapshot.data!.uid), page: 0);
+          }
+          return const LoginPage();
+        },
+      ),
     );
   }
 }

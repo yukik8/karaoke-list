@@ -11,6 +11,7 @@ class TuneList extends StateNotifier<List<String>> {
   ]);
 
   void addTune(String name) {
+    if (state.contains(name)) return;
     state = [...state, name];
   }
 

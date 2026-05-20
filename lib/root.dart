@@ -41,8 +41,8 @@ class _RootState extends State<Root> {
 
   @override
   Widget build(BuildContext context) {
-    myBanner.load();
-    final AdWidget adWidget = AdWidget(ad: myBanner);
+    // myBanner.load();
+    // final AdWidget adWidget = AdWidget(ad: myBanner);
 
     return Stack(
       children: [
@@ -70,21 +70,14 @@ class _RootState extends State<Root> {
                       icon: Icon(Icons.queue_music,size: 40,),
                       label: 'マイリスト',
                     ),
-                     BottomNavigationBarItem(
-                      icon:
-                         SizedBox(height:40,
-                            child: Padding(
-                             padding: const EdgeInsets.all(2),
-                             child: _selectedIndex == 1 ?Image.asset('lib/assets/images/roulette_selected.png')
-                                   : Image.asset('lib/assets/images/roulette.png')
-                            )
-                         ),
-                      label: 'ランダム',
+                    const BottomNavigationBarItem(
+                      icon: Icon(Icons.mic, size: 40),
+                      label: 'おまかせ',
                     ),
 
                      const BottomNavigationBarItem(
                       icon: Icon(Icons.history,size: 40,),
-                      label: '履歴',
+                      label: '記録',
                     ),
                     const BottomNavigationBarItem(
                       icon: Icon(Icons.settings, size: 40,),

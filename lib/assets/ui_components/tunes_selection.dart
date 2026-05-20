@@ -1,159 +1,236 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:untitled/data/one_song_tune.dart';
-
 import '../../data/tune_name.dart';
 
-class TunesSelectionPage extends ConsumerStatefulWidget {
+class TunesSelectionPage extends ConsumerWidget {
   const TunesSelectionPage({Key? key}) : super(key: key);
 
   @override
-  TunesSelectionPageState createState() => TunesSelectionPageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedTunes = ref.watch(oneTuneProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text('タグ',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF555555))),
+            const Spacer(),
+            GestureDetector(
+              onTap: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.white,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (_) => const _TagSheet(),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.add, size: 15, color: Color(0xffC57E14)),
+                  SizedBox(width: 2),
+                  Text('選択・追加',
+                      style: TextStyle(fontSize: 13, color: Color(0xffC57E14), fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (selectedTunes.isEmpty)
+          const Text('タグ未選択', style: TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)))
+        else
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: selectedTunes.map((t) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xffC57E14),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(t,
+                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+            )).toList(),
+          ),
+      ],
+    );
+  }
 }
 
-class TunesSelectionPageState extends ConsumerState<TunesSelectionPage> {
-  /// 検索したいお酒の種類を選ぶことを想定
-  List<String > tunesList = [];
-  List<String > tunes = [];
-
-  final textController = TextEditingController();
-  String onChangedText = '';
-  String onFieldSubmittedText = '';
-  var selectedTunes = <String>[];
+class _TagSheet extends ConsumerStatefulWidget {
+  const _TagSheet();
 
   @override
-  void initState() {
-    super.initState();
-    //  `ref` は StatefulWidget のすべてのライフサイクルメソッド内で使用可能です。
-    // ref.read(tuneProvider);
+  _TagSheetState createState() => _TagSheetState();
+}
+
+class _TagSheetState extends ConsumerState<_TagSheet> {
+  final textController = TextEditingController();
+  String _input = '';
+
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
   }
 
-
+  void _submitTag(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
+    final exists = ref.read(tuneProvider).contains(trimmed);
+    if (!exists) {
+      ref.read(tuneProvider.notifier).addTune(trimmed);
+    }
+    if (!ref.read(oneTuneProvider).contains(trimmed)) {
+      ref.read(oneTuneProvider.notifier).addSongsTune(trimmed);
+    }
+    textController.clear();
+    setState(() => _input = '');
+  }
 
   @override
   Widget build(BuildContext context) {
-    tunesList = ref.watch(tuneProvider);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("タグ",
-        style: TextStyle(fontSize: 23,),),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8,10,8,20),
-          child: Wrap(
-            runSpacing: 14,
-            spacing: 13,
-            children: tunesList.map((tune) {
-              // selectedTags の中に自分がいるかを確かめる
-              final isSelected = selectedTunes.contains(tune);
-              return InkWell(
-                borderRadius: const BorderRadius.all(Radius.circular(32)),
-                onTap: () {
-                  if (isSelected) {
-                    // すでに選択されていれば取り除く
-                    selectedTunes.remove(tune);
-                    ref.read(oneTuneProvider.notifier).deleteSongsTune(tune);
-                  } else {
-                    // 選択されていなければ追加する
-                    selectedTunes.add(tune);
-                    ref.read(oneTuneProvider.notifier).addSongsTune(tune);
-                  }
-                  setState(() {});
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(32)),
-                    border: Border.all(
-                      width: 2,
-                      color: Colors.pink,
-                    ),
-                    color: isSelected ? Colors.pink : null,
-                  ),
-                  child: Text(
-                    tune,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.pink,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        const Text("新しくタグを追加する"),
-        SizedBox(
-          width: 200,
-          child: TextFormField(
-            maxLines: null,
-              autocorrect: true,
-              controller: textController,
-              decoration: InputDecoration(
-                hintText: 'タグを追加',
-                prefixIcon: IconButton(
-                  onPressed: (){
-                    setState(() {
-                        setState(() {
-                          onFieldSubmittedText = onChangedText;
-                          if(onFieldSubmittedText != "") {
-                            ref.read(tuneProvider.notifier).addTune(onFieldSubmittedText);
-                            textController.clear();
-                            onChangedText = "";
-                            onFieldSubmittedText = "";
-                          }
-                        });
-                  });},
-                  icon: const Icon(Icons.add),),
-                suffixIcon: IconButton(
-                  onPressed: () => textController.clear(), //リセット処理
-                  icon: const Icon(Icons.clear),
-                ),
-                isDense: true,
-                contentPadding: const EdgeInsets.fromLTRB(10, 12, 12, 10),
-                hintStyle: const TextStyle(
-                  color: Color(0x993C3C43),
-                  fontSize: 17,
-                ),
-                filled: true,
-                fillColor: const Color(0x1F767680),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0x1F767680), width: 0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0x1F767680), width: 0),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0x1F767680), width: 0),
+    final allTunes = ref.watch(tuneProvider);
+    final selected = ref.watch(oneTuneProvider);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 16),
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              // フィールドのテキストが変更される度に呼び出される
-              onChanged: (value) {
-                setState(() {
-                  onChangedText = value;
-                });
-              },
-              // ユーザーがフィールドのテキストの編集が完了したことを示したときに呼び出される
-              onFieldSubmitted: (value)  {
-                setState(() {
-                  onFieldSubmittedText = value;
-                  if(onFieldSubmittedText != "") {
-                    ref.read(tuneProvider.notifier).addTune(onFieldSubmittedText);
-                    textController.clear();
-                    onChangedText = "";
-                    onFieldSubmittedText = "";
-                  }
-                });
-              },
             ),
-        ),
-      ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Text('タグを選択',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xff1A1A1A))),
+          ),
+          const SizedBox(height: 16),
+          // All tags
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: allTunes.map((tune) {
+                final isSelected = selected.contains(tune);
+                return GestureDetector(
+                  onTap: () {
+                    if (isSelected) {
+                      ref.read(oneTuneProvider.notifier).deleteSongsTune(tune);
+                    } else {
+                      ref.read(oneTuneProvider.notifier).addSongsTune(tune);
+                    }
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: isSelected ? const Color(0xffC57E14) : Colors.transparent,
+                      border: Border.all(
+                        color: isSelected ? const Color(0xffC57E14) : const Color(0xFFD0D0D0),
+                      ),
+                    ),
+                    child: Text(
+                      tune,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : const Color(0xFF888888),
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Add new tag row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 38,
+                    child: TextFormField(
+                      controller: textController,
+                      style: const TextStyle(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: '新しいタグを追加',
+                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFFBBBBBB)),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F5),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onChanged: (v) => setState(() => _input = v),
+                      onFieldSubmitted: _submitTag,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => _submitTag(_input),
+                  child: Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xffC57E14),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Done button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff1A1A1A),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => Navigator.pop(context),
+                child: const Text('完了',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
