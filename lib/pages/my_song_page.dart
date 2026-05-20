@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:untitled/pages/list_edit_page.dart';
 import 'package:untitled/pages/sing_register_page.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
 
 import '../data/register_notifier.dart';
 
+String _formatScore(double score) =>
+    score % 1 == 0 ? score.toInt().toString() : score.toStringAsFixed(1);
 
 class MySongPage extends ConsumerStatefulWidget {
   const MySongPage({super.key, required this.index, required this.preUrl});
@@ -18,13 +21,19 @@ class MySongPage extends ConsumerStatefulWidget {
 
 class MySongPageState extends ConsumerState<MySongPage> {
   late VideoPlayerController _controller;
+  bool _isPlaying = false;
 
+  static const _seasonEmojis = ['🌸', '🌻', '🍁', '⛄️'];
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.preUrl))..initialize().then((_) {
-      // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.preUrl))
+      ..initialize().then((_) => setState(() {}));
+    _controller.addListener(() {
+      if (_controller.value.isPlaying != _isPlaying) {
+        setState(() => _isPlaying = _controller.value.isPlaying);
+      }
     });
   }
 
@@ -34,220 +43,236 @@ class MySongPageState extends ConsumerState<MySongPage> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final data = ref.watch(dataProvider);
+    final data = ref.watch(dataProvider).valueOrNull ?? [];
+    if (widget.index >= data.length) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final song = data[widget.index];
+
     return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Song",
-            style: TextStyle(
-                color: Color(0xffC57E14)
-            ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Song', style: TextStyle(color: Color(0xffC57E14))),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: Color(0xFFAAAAAA)),
+            onPressed: () {
+              _controller.pause();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EditPage(userSong: song),
+                ),
+              );
+            },
           ),
-          backgroundColor: Colors.white,
-        ),
-        body:Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Image.network(
-                data[widget.index][0].artworkUrl(200)),
-            Row(
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20,20,40,10),
-                    child: Row(
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  // Song header card
+                  Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          song.song.artworkUrl(80),
+                          width: 72, height: 72, fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(song.song.artistName,
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF999999)),
+                                maxLines: 1, overflow: TextOverflow.ellipsis),
+                            const SizedBox(height: 3),
+                            Text(song.song.name,
+                                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Color(0xff1A1A1A)),
+                                maxLines: 2, overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                      ),
+                      if (song.season != null) ...[
+                        const SizedBox(width: 8),
+                        Text(_seasonEmojis[song.season!.clamp(0, 3)],
+                            style: const TextStyle(fontSize: 22)),
+                      ],
+                    ],
+                  ),
+                  // Key + Tags row
+                  if (song.key != null || song.tags.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(data[widget.index][0].artistName,
-                                style: const TextStyle(
-                                    fontSize: 14, color: Color(0xFF828282)),
-                              ),
-                              Text(
-                                data[widget.index][0].name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  color: Color(0xff333333),
-                                ),),
-                            ],
+                        if (song.key != null && song.key!.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3E0),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: const Color(0xffC57E14).withOpacity(0.4)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('key ', style: TextStyle(fontSize: 10, color: Color(0xFF888888))),
+                                Text(song.key!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xffC57E14))),
+                              ],
+                            ),
+                          ),
+                        ...song.tags.map((t) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(t, style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
+                        )),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  // Progress bar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: VideoProgressIndicator(
+                      _controller,
+                      allowScrubbing: true,
+                      colors: const VideoProgressColors(
+                        playedColor: Color(0xffC57E14),
+                        bufferedColor: Color(0xFFFFE0B2),
+                        backgroundColor: Color(0xFFEEEEEE),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Player controls
+                  SizedBox(
+                    height: 52,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            onPressed: () => _controller.seekTo(Duration.zero).then((_) => _controller.play()),
+                            icon: const Icon(Icons.replay, size: 24, color: Color(0xFFAAAAAA)),
                           ),
                         ),
-                        const Spacer(),
-                        data[widget.index][5] !=null?
-                        Row(
-                          children: [
-                            Icon(
-                              data[widget.index][5] == 0
-                                  ?Icons.emoji_nature
-                                  : data[widget.index][5] == 1
-                                  ?Icons.surfing
-                                  : data[widget.index][5] == 2
-                                  ?Icons.forest_outlined
-                                  : Icons.ac_unit,
-                                color: data[widget.index][5] == 0
-                                    ?const Color(0xfff19ec2)
-                                    : data[widget.index][5] == 1
-                                    ?const Color(0xff00a0e9)
-                                      : data[widget.index][5] == 2
-                                    ?const Color(0xfff39800)
-                                    :const Color(0xff84ccc9)
+                        GestureDetector(
+                          onTap: () => _isPlaying ? _controller.pause() : _controller.play(),
+                          child: Container(
+                            width: 52,
+                            height: 52,
+                            decoration: const BoxDecoration(
+                              color: Color(0xffC57E14),
+                              shape: BoxShape.circle,
                             ),
-                            Text(data[widget.index][5] == 0
-                                ?"春"
-                                : data[widget.index][5] == 1
-                                ?"夏"
-                                : data[widget.index][5] == 2
-                                ?"秋"
-                                : "冬",
-                                style: TextStyle(
-                                    color: data[widget.index][5] == 0
-                                        ?const Color(0xfff19ec2)
-                                        : data[widget.index][5] == 1
-                                        ?const Color(0xff00a0e9)
-                                        : data[widget.index][5] == 2
-                                        ?const Color(0xfff39800)
-                                        :const Color(0xff84ccc9),
-                                  fontSize: 15
-                                ),
-                                )
-                          ],
-                        )
-                            : const SizedBox.shrink()
+                            child: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 28),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
-
-            Wrap(
-                verticalDirection: VerticalDirection.down, //折り返した際、前後表示の順番
-                alignment: WrapAlignment.end, // 折り返した要素の配置位置を決める
-                runSpacing: 5,
-                spacing: 5,
-                children: data[widget.index][2].map<Widget>((tune) {
-                  // selectedTags の中に自分がいるかを確かめる
-                  return InkWell(
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(32)),
-                        border: Border.all(
-                          width: 2,
-                          color: Colors.pink,
+                  const SizedBox(height: 20),
+                  const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
+                  const SizedBox(height: 16),
+                  // History
+                  const Text('履歴', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF555555))),
+                  const SizedBox(height: 8),
+                  if (song.history.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text('まだ歌った履歴がありません', style: TextStyle(fontSize: 13, color: Color(0xFFAAAAAA))),
+                    )
+                  else
+                    ...song.history.map((h) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFAFAFA),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFEEEEEE)),
                         ),
-                        color: Colors.white,
-                      ),
-                      child: Text(
-                        tune,
-                        style: const TextStyle(
-                          color: Color(0xff333333),
-                          // fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(DateFormat('yyyy年M月d日').format(h.sungAt),
+                                      style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
+                                  if (h.memo != null && h.memo!.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(h.memo!, style: const TextStyle(fontSize: 13, color: Color(0xFF555555))),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            if (h.score != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xffC57E14),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(_formatScore(h.score),
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                              ),
+                          ],
                         ),
                       ),
-                    ),
-                  );
-                }).toList(),
-            ),
-            const SizedBox(height: 20,),
-            VideoProgressIndicator(
-              _controller,
-              allowScrubbing: true,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    _controller
-                        .seekTo(Duration.zero)
-                        .then((_) => _controller.play());
-                  },
-                  icon: const Icon(Icons.refresh),
-                ),
-                IconButton(
-                  onPressed: () {
-                    _controller.play();
-                  },
-                  icon: const Icon(Icons.play_arrow),
-                ),
-                IconButton(
-                  onPressed: () {
-                    _controller.pause();
-                  },
-                  icon: const Icon(Icons.pause),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10,),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange[200],
-              ),
-              onPressed: (){
-                try {
-                  _controller.pause();
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SingRegisterPage(index: widget.index)));
-                } catch (e, s) {
-                  print(s);
-                }
-              }, child: const Text("歌う！",
-              style: TextStyle(fontSize: 22,
-                color: Colors.black,),),),
-            // const Divider(height: 30,thickness: 2,),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(30,0,0,8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text("履歴"),
+                    )),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
-            // const Divider(height: 15,thickness: 2,),
-            data[widget.index][3].isNotEmpty ?
-            Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                // reverse: true,
-                  itemCount: data[widget.index][3].length,
-                  itemBuilder: (context, index) {
-                    if (index > data[widget.index][3].length || data[widget.index][3][index].isEmpty) {
-                      return const SizedBox.shrink(); // 何も表示しない場合は空のSizedBoxを返す
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(8,0,8,0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 20,),
-                          Text("得点：${data[widget.index][3][index][0]}"),
-                          Text("メモ：${data[widget.index][3][index][1]}"),
-                          Text("日付：${DateFormat('yyyy年M月d日').format(data[widget.index][3][index][2])}"),
-                          const Divider(height: 2,thickness: 2,)
-                        ],
-                      ),
-                    );
-                }
-                ,),
-            )
-                : const Text("まだ歌った履歴がありません")
-          ]
-
-        )
+          ),
+          // Sing button pinned at bottom
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xffC57E14),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    _controller.pause();
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => SingRegisterPage(index: widget.index),
+                    ));
+                  },
+                  child: const Text('歌う！',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

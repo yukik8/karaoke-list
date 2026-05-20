@@ -1,262 +1,166 @@
 import 'package:flutter/material.dart';
-import 'package:untitled/services/fetch_function.dart';
+
 import '../models/song.dart';
+import '../services/api_service.dart';
 import 'register_page.dart';
 
+// ---- Category data ----
+
+class _Category {
+  const _Category(this.label, this.colors, {this.genreId, this.searchQuery});
+  final String label;
+  final List<Color> colors;
+  final int? genreId;       // Charts API で取得
+  final String? searchQuery; // Search API にフォールバック
+}
+
+const _categories = [
+  _Category('J-POP',        [Color(0xFFE91E8C), Color(0xFFFF6B6B)], genreId: 27),
+  _Category('アニメ',       [Color(0xFF6C63FF), Color(0xFF9B59B6)], genreId: 29),
+  _Category('演歌',         [Color(0xFFC0392B), Color(0xFF8E1A1A)], genreId: 28),
+  _Category('ロック',       [Color(0xFF2C3E50), Color(0xFF4A4A4A)], searchQuery: '邦楽ロック'),
+  _Category('バラード',     [Color(0xFF2980B9), Color(0xFF1A5276)], searchQuery: 'バラード'),
+  _Category('R&B',          [Color(0xFFE67E22), Color(0xFFC0392B)], genreId: 15),
+  _Category('アイドル',     [Color(0xFFFF6B9D), Color(0xFFFF8E53)], searchQuery: 'アイドル'),
+  _Category('ボカロ',       [Color(0xFF00BCD4), Color(0xFF0097A7)], searchQuery: 'ボカロ'),
+  _Category('K-POP',        [Color(0xFF9B59B6), Color(0xFF6C3483)], genreId: 51),
+  _Category('ヒップホップ', [Color(0xFF1C1C2E), Color(0xFF2D2D44)], genreId: 18),
+  _Category('90年代',       [Color(0xFFF39C12), Color(0xFFD35400)], searchQuery: '90年代 ヒット'),
+  _Category('洋楽POP',      [Color(0xFF27AE60), Color(0xFF1E8449)], genreId: 14),
+];
+
+// ---- Page ----
+
 class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+  const SearchPage({super.key});
+
   @override
   State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-  String onChangedText = '';
-  String onFieldSubmittedText = '';
-  final textController = TextEditingController();
-  var _isLoading = false;
-  var hasError = false;
-  var _isEmpty = false;
-  var _pageNumbers = 0;
-  ScrollController? _scrollController;
-  final List<Song> fetchedSearches = [];
-  List<Song> newSearches = [];
-  final apple = AppleMusicStore.instance;
+  final _controller = TextEditingController();
+  final _scrollController = ScrollController();
+  final _api = KaraokeApiService.instance;
 
+  String _query = '';
+  String _submittedQuery = '';
+  bool _isLoading = false;
+  bool _hasError = false;
+  int _page = 0;
+  final List<Song> _results = [];
+
+  static const _gold = Color(0xffC57E14);
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-    // fetchFunction();
-    _scrollController!.addListener(_scrollListener);
+    _scrollController.addListener(_onScroll);
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-
-  void _scrollListener() async {
-    if (_scrollController != null) {
-      double positionRate = _scrollController!.offset /
-          _scrollController!.position.maxScrollExtent;
-      const threshold = 0.9;
-      if (positionRate > threshold && !_isLoading && _pageNumbers < 5) {
-        fetchFunction(0);
-      }
+  void _onScroll() {
+    if (_scrollController.offset >=
+            _scrollController.position.maxScrollExtent * 0.9 &&
+        !_isLoading &&
+        _page < 5) {
+      _fetchMore();
     }
   }
 
-  Future<void> fetchFunction(int n) async {
-    if (!_isLoading) {
-      setState(() {
-        _isEmpty = false;
-        _isLoading = true;
-        _pageNumbers++;
-      });
-      try {
-        if(n==1){
-          setState(() {
-            _pageNumbers = 1;
-          });
-        }
-        newSearches = await apple.search(onFieldSubmittedText, _pageNumbers);
-      } catch (e) {
-        // print("Error: $e");
-        setState(() {
-          hasError = true;
-        });
-      } finally {
-        setState(() {
-          fetchedSearches.addAll(newSearches);
-          _isLoading = false;
-        });
-      }
+  bool _isBrowsingCategory = false;
+  int? _browsingGenreId;
+
+  Future<void> _browseCategory(_Category cat) async {
+    FocusScope.of(context).unfocus();
+    _controller.clear();
+    setState(() {
+      _query = '';
+      _submittedQuery = cat.label;
+      _browsingGenreId = cat.genreId;
+      _isBrowsingCategory = true;
+      _results.clear();
+      _page = 0;
+      _isLoading = true;
+      _hasError = false;
+    });
+    try {
+      final songs = cat.genreId != null
+          ? await _api.getChartSongs(genreId: cat.genreId!)
+          : await _api.searchSongs(cat.searchQuery ?? cat.label, 1);
+      if (mounted) setState(() => _results.addAll(songs));
+    } catch (_) {
+      if (mounted) setState(() => _hasError = true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Widget _listView(List<Song> items) {
-    return RefreshIndicator(
-      color: Colors.grey,
-      backgroundColor: const Color(0xFFFFFFFF),
-      onRefresh: () async{
-        // setState(() {
-        //   _pageNumbers = 1;
-        // });
-        await fetchFunction(1);
-      },
-      child: ListView.builder(
-        controller: _scrollController,
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        itemCount: _isLoading ? items.length + 1 : items.length,
-        itemBuilder: (context, index) {
-          if (index == items.length) {
-            return _loadingView();
-          }
-          // if (index > items.length) {
-          //
-          //   return SizedBox(); // 何も表示しない場合は空のSizedBoxを返す
-          // }
+  Future<void> _search(String query) async {
+    final q = query.trim();
+    if (q.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _submittedQuery = q;
+      _browsingGenreId = null;
+      _isBrowsingCategory = false;
+      _results.clear();
+      _page = 0;
+      _isLoading = true;
+      _hasError = false;
+    });
+    await _fetchMore();
+  }
 
-            return ElevatedButton(
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-              elevation: MaterialStateProperty.all(0),
-            ),
-            onPressed: (){
-              showModalBottomSheet<void>(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  isScrollControlled: true,
-                  context: context,
-                  builder: (BuildContext context) {
+  void _exitCategoryBrowse() {
+    setState(() {
+      _submittedQuery = '';
+      _browsingGenreId = null;
+      _isBrowsingCategory = false;
+      _results.clear();
+      _page = 0;
+      _hasError = false;
+    });
+  }
 
+  Future<void> _fetchMore() async {
+    if (_isLoading && _page > 0) return;
+    setState(() {
+      _isLoading = true;
+      _page++;
+    });
+    try {
+      final songs = await _api.searchSongs(_submittedQuery, _page);
+      setState(() => _results.addAll(songs));
+    } catch (_) {
+      setState(() => _hasError = true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
-
-                    return Container(
-                        decoration: const BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(10),
-                              topRight: Radius.circular(10),
-                            )),
-                        height: MediaQuery.of(context).size.height * 0.9,
-                      child: RegisterPage(
-                        preUrl: items[index].previewUrl,
-                        name: items[index].name,
-                        id: items[index].id,
-                        imgUrl: items[index].artworkImgUrl,
-                        artistName: items[index].artistName,
-                      ),
-                    );
-                  });
-            },
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                   SizedBox(
-                     child: Image.network(
-                Song(id: items[index].id, name: items[index].name, previewUrl: items[index].previewUrl, artworkImgUrl: items[index].artworkImgUrl, artistName: items[index].artistName).artworkUrl(40))),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(items[index].artistName,
-                            style: const TextStyle(
-                                fontSize: 12, color: Color(0xFF828282)),
-                          ),
-                          Text(
-                            items[index].name,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 9,),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(height: 10,thickness: 2,),
-              ],
-            ),
-          );
-        },
+  void _openSong(Song song) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
       ),
-    );
-  }
-
-  Widget _textField() {
-    return TextFormField(
-      autocorrect: true,
-      controller: textController,
-      decoration: InputDecoration(
-        hintText: 'Search',
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: IconButton(
-          onPressed: () => textController.clear(), //リセット処理
-          icon: const Icon(Icons.clear),
+      builder: (_) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: RegisterPage(
+          preUrl: song.previewUrl,
+          name: song.name,
+          id: song.id,
+          imgUrl: song.artworkImgUrl,
+          artistName: song.artistName,
         ),
-        isDense: true,
-        contentPadding: const EdgeInsets.fromLTRB(10, 12, 12, 10),
-        hintStyle: const TextStyle(
-          color: Color(0x993C3C43),
-          fontSize: 17,
-        ),
-        filled: true,
-        fillColor: const Color(0x1F767680),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0x1F767680), width: 0),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0x1F767680), width: 0),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0x1F767680), width: 0),
-        ),
-      ),
-      // フィールドのテキストが変更される度に呼び出される
-      onChanged: (value) {
-        setState(() {
-          onChangedText = value;
-        });
-      },
-      // ユーザーがフィールドのテキストの編集が完了したことを示したときに呼び出される
-      onFieldSubmitted: (value) async {
-        setState(() {
-          onFieldSubmittedText = value;
-          fetchedSearches.clear();
-          _pageNumbers = 0;
-          _isEmpty = false;
-        });
-        await fetchFunction(0);
-        if (fetchedSearches.isEmpty) {
-          setState(() {
-            _isEmpty = true;
-          });
-        }
-      },
-    );
-  }
-
-  Widget _emptyView() {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height / 3,
-      child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              '検索にマッチする曲はありませんでした。',
-              style: TextStyle(
-                fontSize: 14,
-              ),
-            ),
-            SizedBox(height: 17),
-            Text(
-              '検索条件を変え、再度検索します。',
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFF828282),
-              ),
-            )
-          ]),
-    );
-  }
-
-  Widget _loadingView() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: Colors.grey,
       ),
     );
   }
@@ -266,59 +170,296 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          "Search",
-          style: TextStyle(
-              color: Color(0xffC57E14)
-          ),
-        ),
         backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text('曲を追加',
+            style: TextStyle(color: _gold, fontWeight: FontWeight.bold)),
       ),
-      body: hasError
-          ? const Center(child: Text("Error"))
-          :GestureDetector(
-        onTap: () => WidgetsBinding.instance.focusManager.primaryFocus?.unfocus(),
-        child: Column(
-          children: [
-            Container(
-              color: Colors.white,
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
-                  child: _textField()),
-            ),
-            // Padding(
-            //   padding: const EdgeInsets.fromLTRB(13,0,13,0),
-            //   child: const Divider(height: 0.5,thickness: 2,),
-            // ),
-            const Divider(height: 0.5,thickness: 1,),
-            SizedBox(
-              height: 8,
+      body: Column(
+        children: [
+          if (_isBrowsingCategory)
+            // Category header with back button
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 16, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new,
+                        size: 18, color: Color(0xFF555555)),
+                    onPressed: _exitCategoryBrowse,
+                  ),
+                  Text(
+                    _submittedQuery,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Container(
-                color: Colors.white,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F2F2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: TextField(
+                  controller: _controller,
+                  textInputAction: TextInputAction.search,
+                  textAlignVertical: TextAlignVertical.center,
+                  style: const TextStyle(fontSize: 15),
+                  decoration: InputDecoration(
+                    hintText: '曲名・アーティスト名で検索',
+                    hintStyle: const TextStyle(
+                        fontSize: 14, color: Color(0xFFBBBBBB)),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    prefixIcon: const Icon(Icons.search,
+                        size: 20, color: Color(0xFFBBBBBB)),
+                    suffixIcon: _query.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _controller.clear();
+                              setState(() {
+                                _query = '';
+                                _submittedQuery = '';
+                                _isBrowsingCategory = false;
+                                _results.clear();
+                              });
+                            },
+                            child: const Icon(Icons.close,
+                                size: 16, color: Color(0xFFBBBBBB)),
+                          )
+                        : null,
+                  ),
+                  onChanged: (v) => setState(() => _query = v),
+                  onSubmitted: _search,
+                ),
               ),
             ),
-            Expanded(
-              child: onFieldSubmittedText == ''
-                  ?  const SizedBox(
-                child:  Padding(
-                  padding: EdgeInsets.fromLTRB(0,50,0,0),
-                  child: Text('検索ワードを入力します。',
-                  style: TextStyle(
-                      // color: Color(0xff333333),
-                    fontFamily: 'Noto_Sans_JP',
-                  ),
-                  ),
-                ),)
-                  : _isEmpty
-                  ? _emptyView()
-                  : _isLoading && _pageNumbers == 1
-                  ? _loadingView()
-                  : _listView(fetchedSearches),
-            )
+          const Divider(height: 0.5),
+          Expanded(
+            child: _hasError
+                ? const Center(
+                    child: Text('エラーが発生しました',
+                        style: TextStyle(color: Color(0xFFAAAAAA))))
+                : _submittedQuery.isEmpty
+                    ? _browseView()
+                    : _resultsView(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- Browse (empty state) ----
+
+  Widget _browseView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'カテゴリから探す',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 14),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.9,
+            ),
+            itemCount: _categories.length,
+            itemBuilder: (_, i) => _CategoryCard(
+              category: _categories[i],
+              onTap: () => _browseCategory(_categories[i]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- Search results ----
+
+  Widget _resultsView() {
+    if (_isLoading && _results.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: _gold, strokeWidth: 2),
+      );
+    }
+    if (_results.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.music_off, size: 48, color: Color(0xFFDDDDDD)),
+            const SizedBox(height: 12),
+            Text(
+              '「$_submittedQuery」は見つかりませんでした',
+              style: const TextStyle(fontSize: 14, color: Color(0xFFAAAAAA)),
+            ),
           ],
         ),
-      )
+      );
+    }
+    return ListView.builder(
+      controller: _scrollController,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      itemCount: _isLoading ? _results.length + 1 : _results.length,
+      itemBuilder: (_, i) {
+        if (i == _results.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(
+              child: CircularProgressIndicator(color: _gold, strokeWidth: 2),
+            ),
+          );
+        }
+        final song = _results[i];
+        return _SongRow(song: song, onTap: () => _openSong(song));
+      },
+    );
+  }
+}
+
+// ---- Category card ----
+
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard({required this.category, required this.onTap});
+  final _Category category;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: category.colors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          children: [
+            // Decorative large character
+            Positioned(
+              right: -6,
+              bottom: -14,
+              child: Text(
+                category.label.substring(0, 1),
+                style: TextStyle(
+                  fontSize: 64,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white.withOpacity(0.15),
+                  height: 1,
+                ),
+              ),
+            ),
+            // Label
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Text(
+                category.label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---- Song row ----
+
+class _SongRow extends StatelessWidget {
+  const _SongRow({required this.song, required this.onTap});
+  final Song song;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      song.artworkUrl(52),
+                      width: 52,
+                      height: 52,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          song.artistName,
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF828282)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          song.name,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xff1A1A1A),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.add_circle_outline,
+                      color: Color(0xffC57E14), size: 22),
+                ],
+              ),
+            ),
+            const Divider(height: 1, thickness: 0.5, indent: 80),
+          ],
+        ),
+      ),
     );
   }
 }
