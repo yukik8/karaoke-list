@@ -9,10 +9,7 @@ class KaraokeApiService {
   static KaraokeApiService instance = KaraokeApiService._();
   KaraokeApiService._();
 
-  static String get _baseUrl {
-    if (Platform.isAndroid) return 'http://10.0.2.2:8000';
-    return 'http://localhost:8000';
-  }
+  static const _baseUrl = 'https://karaoke-api-851518528050.asia-northeast1.run.app';
 
   Future<String> _getToken() async {
     final user = FirebaseAuth.instance.currentUser;

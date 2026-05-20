@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../data/register_notifier.dart';
 import '../services/api_service.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 
 import '../assets/constants/privacy_policy.dart';
 import '../assets/constants/terms_of_service.dart';
@@ -52,13 +54,13 @@ class _AccountItem extends StatelessWidget {
   }
 }
 
-class SettingPage extends StatefulWidget {
+class SettingPage extends ConsumerStatefulWidget {
   const SettingPage({Key? key}) : super(key: key);
   @override
-  State<SettingPage> createState() => _SettingPageState();
+  ConsumerState<SettingPage> createState() => _SettingPageState();
 }
 
-class _SettingPageState extends State<SettingPage> {
+class _SettingPageState extends ConsumerState<SettingPage> {
   bool hasError = false;
   String version = '';
 
@@ -166,6 +168,7 @@ class _SettingPageState extends State<SettingPage> {
                 ),
               );
               if (confirm == true) {
+                ref.invalidate(dataProvider);
                 await GoogleSignIn().signOut();
                 await FirebaseAuth.instance.signOut();
               }
@@ -196,12 +199,74 @@ class _SettingPageState extends State<SettingPage> {
               if (confirm != true) return;
               try {
                 await KaraokeApiService.instance.deleteAccount();
+                ref.invalidate(dataProvider);
                 await GoogleSignIn().signOut();
                 await FirebaseAuth.instance.currentUser?.delete();
               } on FirebaseAuthException catch (e) {
-                if (e.code == 'requires-recent-login' && context.mounted) {
+                if (e.code == 'requires-recent-login') {
+                  if (!context.mounted) return;
+                  // 再認証が必要な理由をユーザーに説明してから進む
+                  final proceed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('本人確認が必要です'),
+                      content: const Text(
+                          'セキュリティのため、もう一度Googleアカウントでサインインしてください。\n完了するとアカウントが削除されます。'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('キャンセル'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('サインインして削除',
+                              style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (proceed != true) return;
+                  try {
+                    final providers = FirebaseAuth.instance.currentUser
+                            ?.providerData
+                            .map((p) => p.providerId)
+                            .toList() ??
+                        [];
+                    final AuthCredential credential;
+                    if (providers.contains('apple.com')) {
+                      final appleCredential =
+                          await SignInWithApple.getAppleIDCredential(
+                        scopes: [
+                          AppleIDAuthorizationScopes.email,
+                          AppleIDAuthorizationScopes.fullName,
+                        ],
+                      );
+                      credential = OAuthProvider('apple.com').credential(
+                        idToken: appleCredential.identityToken,
+                        accessToken: appleCredential.authorizationCode,
+                      );
+                    } else {
+                      final googleUser = await GoogleSignIn().signIn();
+                      if (googleUser == null) return;
+                      final googleAuth = await googleUser.authentication;
+                      credential = GoogleAuthProvider.credential(
+                        accessToken: googleAuth.accessToken,
+                        idToken: googleAuth.idToken,
+                      );
+                    }
+                    await FirebaseAuth.instance.currentUser
+                        ?.reauthenticateWithCredential(credential);
+                    await FirebaseAuth.instance.currentUser?.delete();
+                    // delete() 後も Google セッションが残るので明示的にサインアウト
+                    await GoogleSignIn().signOut();
+                  } catch (_) {
+                    // 再認証も失敗した場合は強制サインアウト（データは既に削除済み）
+                    await GoogleSignIn().signOut();
+                    await FirebaseAuth.instance.signOut();
+                  }
+                } else if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('セキュリティのため、一度ログアウトして再ログイン後に削除してください')),
+                    SnackBar(content: Text('削除に失敗しました: ${e.message}')),
                   );
                 }
               } catch (e) {
