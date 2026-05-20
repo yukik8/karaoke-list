@@ -56,7 +56,6 @@ class RegisterPageState extends ConsumerState<RegisterPage> {
 
     return ProviderScope(
       child: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text(
             "Register",
@@ -183,7 +182,7 @@ class RegisterPageState extends ConsumerState<RegisterPage> {
                     _controller.pause();
                     ref.read(oneTuneProvider.notifier).deleteSongsAllTunes();
                     ref.read(seasonProvider.notifier).deleteSeason();
-                    final songState = ref.read(dataProvider).valueOrNull ?? [];
+                    final songState = ref.read(dataProvider).value ?? [];
                     final alreadyExists = songState.any((us) => us.song.id == widget.id);
                     if (alreadyExists) {
                       showDialog(

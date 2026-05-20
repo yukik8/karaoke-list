@@ -88,14 +88,9 @@ class _LoginPageState extends State<LoginPage>
       _error = null;
     });
     try {
-      final googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        setState(() => _loading = false);
-        return;
-      }
-      final googleAuth = await googleUser.authentication;
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      final googleAuth = googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
@@ -161,7 +156,7 @@ class _LoginPageState extends State<LoginPage>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFF5A623).withOpacity(0.06),
+                    const Color(0xFFF5A623).withValues(alpha: 0.06),
                     Colors.transparent,
                   ],
                 ),
@@ -196,7 +191,7 @@ class _LoginPageState extends State<LoginPage>
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black
-                                          .withOpacity(shadowOpacity),
+                                          .withValues(alpha: shadowOpacity),
                                       blurRadius: shadowBlur,
                                       spreadRadius: 0,
                                       offset: Offset(0, shadowY),
@@ -362,7 +357,7 @@ class _FeatureCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFECE6DE), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 6),
@@ -444,7 +439,7 @@ class _SignInButton extends StatelessWidget {
           border: Border.all(color: borderColor, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 16,
               spreadRadius: 0,
               offset: const Offset(0, 4),

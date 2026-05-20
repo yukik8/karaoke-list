@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 class TuneList extends StateNotifier<List<String>> {
   // 引数に初期リストを入れる、なければ空のリスト

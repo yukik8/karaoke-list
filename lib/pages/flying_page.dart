@@ -23,10 +23,16 @@ class _SplashPageState extends State<SplashPage>
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
-        child: Center(
+    return PopScope(
+      canPop: false,
+      child: Center(
           child: Lottie.asset(
             'lib/assets/lottie.json',
             width: 250,

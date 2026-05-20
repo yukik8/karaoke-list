@@ -102,7 +102,7 @@ class SingRegisterPageState extends ConsumerState<SingRegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = ref.watch(dataProvider).valueOrNull ?? [];
+    final data = ref.watch(dataProvider).value ?? [];
     if (widget.index >= data.length) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator(color: _gold)),
@@ -111,7 +111,6 @@ class SingRegisterPageState extends ConsumerState<SingRegisterPage> {
     final song = data[widget.index];
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -380,7 +379,7 @@ class _StepButton extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: const Color(0xFFC57E14).withOpacity(0.4),
+            color: const Color(0xFFC57E14).withValues(alpha: 0.4),
             width: 1.5,
           ),
           color: const Color(0xFFFFF8EE),

@@ -122,7 +122,7 @@ class RandomPageState extends ConsumerState<RandomPage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = ref.watch(dataProvider).valueOrNull ?? [];
+    final data = ref.watch(dataProvider).value ?? [];
     final allTags = ref.watch(tuneProvider);
 
     final filtered = data.where((song) {
@@ -135,12 +135,11 @@ class RandomPageState extends ConsumerState<RandomPage> {
     final hasFilter = _selectedSeason != null || _selectedTags.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text('Pick', style: TextStyle(color: Color(0xffC57E14))),
+        centerTitle: true,
         automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        title: const Text('Pick', style: TextStyle(color: Color(0xffC57E14))),
       ),
       body: Stack(
         children: [
@@ -245,7 +244,7 @@ class RandomPageState extends ConsumerState<RandomPage> {
           // Slot machine overlay
           if (_isAnimating)
             Container(
-              color: Colors.black.withOpacity(0.65),
+              color: Colors.black.withValues(alpha: 0.65),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

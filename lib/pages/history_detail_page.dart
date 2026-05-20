@@ -60,7 +60,6 @@ class HistoryDetailState extends ConsumerState<HistoryDetail> {
     final score = history.score;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -217,7 +216,7 @@ class HistoryDetailState extends ConsumerState<HistoryDetail> {
                           '点',
                           style: TextStyle(
                             fontSize: 16,
-                            color: _scoreColor(score).withOpacity(0.6),
+                            color: _scoreColor(score).withValues(alpha: 0.6),
                           ),
                         ),
                       ),

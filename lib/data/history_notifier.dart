@@ -11,7 +11,7 @@ class HistoryEntry {
 
 // Derives all history entries from dataProvider, sorted by date descending
 final historyProvider = Provider<List<HistoryEntry>>((ref) {
-  final songs = ref.watch(dataProvider).valueOrNull ?? [];
+  final songs = ref.watch(dataProvider).value ?? [];
   final entries = <HistoryEntry>[];
   for (final song in songs) {
     for (final h in song.history) {

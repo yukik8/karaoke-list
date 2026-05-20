@@ -45,14 +45,13 @@ class MySongPageState extends ConsumerState<MySongPage> {
 
   @override
   Widget build(BuildContext context) {
-    final data = ref.watch(dataProvider).valueOrNull ?? [];
+    final data = ref.watch(dataProvider).value ?? [];
     if (widget.index >= data.length) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final song = data[widget.index];
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Song', style: TextStyle(color: Color(0xffC57E14))),
         backgroundColor: Colors.white,
@@ -126,7 +125,7 @@ class MySongPageState extends ConsumerState<MySongPage> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFF3E0),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xffC57E14).withOpacity(0.4)),
+                              border: Border.all(color: const Color(0xffC57E14).withValues(alpha: 0.4)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,

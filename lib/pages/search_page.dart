@@ -168,7 +168,6 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -371,7 +370,7 @@ class _CategoryCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 64,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   height: 1,
                 ),
               ),

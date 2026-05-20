@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:untitled/root.dart';
 import 'package:untitled/pages/login_page.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,18 +11,17 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } on FirebaseException catch (e) {
+    if (e.code != 'duplicate-app') rethrow;
+  }
   MobileAds.instance.initialize();
+  await GoogleSignIn.instance.initialize();
   runApp(const ProviderScope(child: MyApp()));
 }
-
-
-final numberProvider = StateProvider<int>((ref) => 0);
-final songListProvider = StateProvider<List<String>>((ref) => []);
-final masterProvider = StateProvider<List<String>>((ref) => []);
-final tagProvider = StateProvider<List<String>>((ref) => []);
 
 
 class MyApp extends StatelessWidget {
@@ -33,6 +33,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.orange,
+        scaffoldBackgroundColor: Colors.white,
       ),
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),

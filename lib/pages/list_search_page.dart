@@ -49,12 +49,11 @@ class _ListSearchPageState extends ConsumerState<ListSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final allSongs = ref.watch(dataProvider).valueOrNull ?? [];
+    final allSongs = ref.watch(dataProvider).value ?? [];
     final allTags = _allTags(allSongs);
     final results = _filtered(allSongs);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

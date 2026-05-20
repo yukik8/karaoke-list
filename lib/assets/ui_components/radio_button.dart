@@ -41,7 +41,7 @@ class CustomRadioButton extends ConsumerWidget {
                   color: isSelected ? color : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: isSelected
-                      ? [BoxShadow(color: color.withOpacity(0.35), blurRadius: 6, offset: const Offset(0, 2))]
+                      ? [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 6, offset: const Offset(0, 2))]
                       : [],
                 ),
                 child: Column(

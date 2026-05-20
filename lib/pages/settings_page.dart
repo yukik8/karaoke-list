@@ -169,7 +169,9 @@ class _SettingPageState extends ConsumerState<SettingPage> {
               );
               if (confirm == true) {
                 ref.invalidate(dataProvider);
-                await GoogleSignIn().signOut();
+                try {
+                  await GoogleSignIn.instance.signOut();
+                } catch (_) {}
                 await FirebaseAuth.instance.signOut();
               }
             },
@@ -200,8 +202,11 @@ class _SettingPageState extends ConsumerState<SettingPage> {
               try {
                 await KaraokeApiService.instance.deleteAccount();
                 ref.invalidate(dataProvider);
-                await GoogleSignIn().signOut();
                 await FirebaseAuth.instance.currentUser?.delete();
+                try {
+                  await GoogleSignIn.instance.signOut();
+                } catch (_) {}
+                await FirebaseAuth.instance.signOut();
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'requires-recent-login') {
                   if (!context.mounted) return;
@@ -246,22 +251,24 @@ class _SettingPageState extends ConsumerState<SettingPage> {
                         accessToken: appleCredential.authorizationCode,
                       );
                     } else {
-                      final googleUser = await GoogleSignIn().signIn();
-                      if (googleUser == null) return;
-                      final googleAuth = await googleUser.authentication;
+                      final googleUser = await GoogleSignIn.instance.authenticate();
+                      final googleAuth = googleUser.authentication;
                       credential = GoogleAuthProvider.credential(
-                        accessToken: googleAuth.accessToken,
                         idToken: googleAuth.idToken,
                       );
                     }
                     await FirebaseAuth.instance.currentUser
                         ?.reauthenticateWithCredential(credential);
                     await FirebaseAuth.instance.currentUser?.delete();
-                    // delete() 後も Google セッションが残るので明示的にサインアウト
-                    await GoogleSignIn().signOut();
+                    try {
+                      await GoogleSignIn.instance.signOut();
+                    } catch (_) {}
+                    await FirebaseAuth.instance.signOut();
                   } catch (_) {
                     // 再認証も失敗した場合は強制サインアウト（データは既に削除済み）
-                    await GoogleSignIn().signOut();
+                    try {
+                      await GoogleSignIn.instance.signOut();
+                    } catch (_) {}
                     await FirebaseAuth.instance.signOut();
                   }
                 } else if (context.mounted) {

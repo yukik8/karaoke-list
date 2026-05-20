@@ -30,7 +30,7 @@ class _RootState extends State<Root> {
     });
   }
 
-  final AdManagerBannerAd myBanner = AdManagerBannerAd(
+final AdManagerBannerAd myBanner = AdManagerBannerAd(
     adUnitId: Platform.isIOS ?
     'ca-app-pub-4699704811538614/2488229900'
     :'ca-app-pub-4699704811538614/9071472631',
@@ -46,8 +46,8 @@ class _RootState extends State<Root> {
 
     return Stack(
       children: [
-        WillPopScope(
-          onWillPop: () async => false,
+        PopScope(
+          canPop: false,
           child: Scaffold(
             body: _screens[_selectedIndex ?? widget.page],
             bottomNavigationBar:

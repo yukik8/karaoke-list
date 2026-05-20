@@ -168,7 +168,6 @@ class EditPageState extends ConsumerState<EditPage> {
     final song = widget.userSong.song;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           '編集',

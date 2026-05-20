@@ -15,8 +15,6 @@ class Chart {
   factory Chart.fromJson(Map<String, dynamic> json) {
     final songJson = json['data'] as List;
     final songs = songJson.map((s) => Song.fromJson(s)).toList();
-    print(songs);
-
     return Chart(
         chart: json['chart'],
         href: json['href'],

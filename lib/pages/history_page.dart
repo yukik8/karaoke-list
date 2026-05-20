@@ -228,8 +228,8 @@ class _ScoreBadge extends StatelessWidget {
     } else if (score >= 70) {
       return _ScoreStyle(
         text: const Color(0xffC57E14),
-        bg: const Color(0xffC57E14).withOpacity(0.1),
-        border: const Color(0xffC57E14).withOpacity(0.3),
+        bg: const Color(0xffC57E14).withValues(alpha: 0.1),
+        border: const Color(0xffC57E14).withValues(alpha: 0.3),
       );
     } else {
       return _ScoreStyle(

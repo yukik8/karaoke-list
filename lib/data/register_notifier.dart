@@ -10,13 +10,13 @@ class DataList extends AsyncNotifier<List<UserSong>> {
 
   Future<void> addData(UserSong userSong) async {
     final created = await KaraokeApiService.instance.createUserSong(userSong);
-    state = AsyncData([...state.valueOrNull ?? [], created]);
+    state = AsyncData([...state.value ?? [], created]);
   }
 
   Future<void> deleteData(String userSongId) async {
     await KaraokeApiService.instance.deleteUserSong(userSongId);
     state = AsyncData(
-      (state.valueOrNull ?? []).where((s) => s.id != userSongId).toList(),
+      (state.value ?? []).where((s) => s.id != userSongId).toList(),
     );
   }
 
@@ -29,7 +29,7 @@ class DataList extends AsyncNotifier<List<UserSong>> {
       tags: tags,
     );
     state = AsyncData(
-      (state.valueOrNull ?? [])
+      (state.value ?? [])
           .map((s) => s.id == userSongId ? updated : s)
           .toList(),
     );
