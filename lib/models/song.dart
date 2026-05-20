@@ -24,8 +24,16 @@ class Song {
         previewUrl: json['attributes']['previews'][0]['url'],
         artworkImgUrl: json['attributes']['artwork']['url'],
         artistName: json['attributes']['artistName'],
-        // releaseDate: json['attributes']['releaseDate'],
-        // albumName: json['attributes']['albumName']
+    );
+  }
+
+  factory Song.fromBackendJson(Map<String, dynamic> json) {
+    return Song(
+      id: json['apple_music_id'],
+      name: json['name'],
+      artistName: json['artist_name'],
+      artworkImgUrl: json['artwork_url'] ?? '',
+      previewUrl: json['preview_url'] ?? '',
     );
   }
 

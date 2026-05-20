@@ -1,11 +1,56 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../services/api_service.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 
 import '../assets/constants/privacy_policy.dart';
 import '../assets/constants/terms_of_service.dart';
 import '../assets/ui_components/settings_item.dart';
 import '../assets/ui_components/settings_modal.dart';
+
+class _AccountItem extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName ?? '';
+    final email = user?.email ?? '';
+    final photoUrl = user?.photoURL;
+
+    return Container(
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 24, 12),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+              backgroundColor: const Color(0xffEEEEEE),
+              child: photoUrl == null
+                  ? const Icon(Icons.person, color: Colors.grey)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (name.isNotEmpty)
+                  Text(name,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w500)),
+                Text(email,
+                    style: const TextStyle(
+                        fontSize: 12, color: Color(0xff828282))),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class SettingPage extends StatefulWidget {
   const SettingPage({Key? key}) : super(key: key);
@@ -54,6 +99,8 @@ class _SettingPageState extends State<SettingPage> {
           const SizedBox(
             height: 8,
           ),
+          _AccountItem(),
+          const SizedBox(height: 36),
           SettingsItem(
               title: 'プライバシーポリシー',
               data: const Icon(
@@ -95,9 +142,78 @@ class _SettingPageState extends State<SettingPage> {
             title: 'アプリバージョン',
             data: Text('v$version'),
           ),
-          const SizedBox(
-            height: 36,
+          const SizedBox(height: 36),
+          SettingsItem(
+            title: 'ログアウト',
+            data: const Icon(Icons.logout, size: 16, color: Colors.red),
+            onTap: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('ログアウト'),
+                  content: const Text('ログアウトしますか？'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('キャンセル'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('ログアウト',
+                          style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                await GoogleSignIn().signOut();
+                await FirebaseAuth.instance.signOut();
+              }
+            },
           ),
+          SettingsItem(
+            title: 'アカウントを削除',
+            data: const Icon(Icons.delete_forever, size: 16, color: Colors.red),
+            onTap: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('アカウントを削除'),
+                  content: const Text('全てのデータが削除されます。この操作は取り消せません。'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('キャンセル'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('削除',
+                          style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm != true) return;
+              try {
+                await KaraokeApiService.instance.deleteAccount();
+                await GoogleSignIn().signOut();
+                await FirebaseAuth.instance.currentUser?.delete();
+              } on FirebaseAuthException catch (e) {
+                if (e.code == 'requires-recent-login' && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('セキュリティのため、一度ログアウトして再ログイン後に削除してください')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('削除に失敗しました: $e')),
+                  );
+                }
+              }
+            },
+          ),
+          const SizedBox(height: 36),
             // const Column(
             //   crossAxisAlignment: CrossAxisAlignment.start,
             //   children: [
