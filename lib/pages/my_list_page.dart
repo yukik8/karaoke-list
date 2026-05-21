@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:untitled/data/drop_down_notifier.dart';
@@ -189,7 +190,6 @@ class MyListPageState extends ConsumerState<MyListPage> {
                 }
 
                 return ListView.builder(
-                  shrinkWrap: true,
                   itemCount: data.length,
                   itemBuilder: (context, index) {
                     if (index >= data.length) {
@@ -224,11 +224,25 @@ class MyListPageState extends ConsumerState<MyListPage> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(6),
-                                    child: Image.network(
-                                      song.song.artworkUrl(52),
+                                    child: CachedNetworkImage(
+                                      imageUrl: song.song.artworkUrl(52),
                                       width: 52,
                                       height: 52,
                                       fit: BoxFit.cover,
+                                      memCacheWidth: 156, // ~3x for retina
+                                      fadeInDuration: const Duration(milliseconds: 120),
+                                      placeholder: (_, __) => Container(
+                                        width: 52,
+                                        height: 52,
+                                        color: const Color(0xFFF5F5F5),
+                                      ),
+                                      errorWidget: (_, __, ___) => Container(
+                                        width: 52,
+                                        height: 52,
+                                        color: const Color(0xFFF5F5F5),
+                                        child: const Icon(Icons.music_note,
+                                            size: 20, color: Color(0xFFBDBDBD)),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 12),

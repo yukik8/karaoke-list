@@ -36,10 +36,27 @@ class DataList extends AsyncNotifier<List<UserSong>> {
   }
 
   Future<void> addHistory(String userSongId, double score, String? memo, {DateTime? sungAt}) async {
-    await KaraokeApiService.instance.addHistory(userSongId, score, memo, sungAt: sungAt);
-    // Reload to get updated history
-    final songs = await KaraokeApiService.instance.getUserSongs();
-    state = AsyncData(songs);
+    final created = await KaraokeApiService.instance.addHistory(
+      userSongId, score, memo, sungAt: sungAt);
+    // Patch the existing song's history in-place (newest-first) instead of
+    // re-fetching the whole list — keeps the My List view snappy after singing.
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncData([
+      for (final s in current)
+        if (s.id == userSongId)
+          UserSong(
+            id: s.id,
+            song: s.song,
+            key: s.key,
+            season: s.season,
+            tags: s.tags,
+            createdAt: s.createdAt,
+            history: [created, ...s.history],
+          )
+        else
+          s,
+    ]);
   }
 
   void reload() {

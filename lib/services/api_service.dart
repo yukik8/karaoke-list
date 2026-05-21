@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+import '../models/singing_history_item.dart';
 import '../models/song.dart';
 import '../models/user_song.dart';
 
@@ -113,7 +114,7 @@ class KaraokeApiService {
     return data.map((e) => Song.fromBackendJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<void> addHistory(String userSongId, double score, String? memo, {DateTime? sungAt}) async {
+  Future<SingingHistoryItem> addHistory(String userSongId, double score, String? memo, {DateTime? sungAt}) async {
     final body = <String, dynamic>{'score': score};
     if (memo != null && memo.isNotEmpty) body['memo'] = memo;
     if (sungAt != null) body['sung_at'] = sungAt.toIso8601String();
@@ -125,5 +126,7 @@ class KaraokeApiService {
     if (resp.statusCode != 201) {
       throw Exception('Failed to add history: ${resp.statusCode}');
     }
+    return SingingHistoryItem.fromJson(
+        json.decode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>);
   }
 }
