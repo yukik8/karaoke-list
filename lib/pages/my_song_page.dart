@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:untitled/pages/list_edit_page.dart';
@@ -85,9 +86,21 @@ class MySongPageState extends ConsumerState<MySongPage> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          song.song.artworkUrl(80),
+                        child: CachedNetworkImage(
+                          imageUrl: song.song.artworkUrl(80),
                           width: 72, height: 72, fit: BoxFit.cover,
+                          memCacheWidth: 216,
+                          fadeInDuration: const Duration(milliseconds: 120),
+                          placeholder: (_, __) => Container(
+                            width: 72, height: 72,
+                            color: const Color(0xFFF5F5F5),
+                          ),
+                          errorWidget: (_, __, ___) => Container(
+                            width: 72, height: 72,
+                            color: const Color(0xFFF5F5F5),
+                            child: const Icon(Icons.music_note,
+                                size: 24, color: Color(0xFFBDBDBD)),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 14),
