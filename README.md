@@ -1,54 +1,67 @@
 # Karalis
 
-カラオケのマイリストを管理するiOS / Androidアプリ。
+> カラオケに行くたびに「あの曲なんだっけ」「何歌おう」となる問題を解決する、自分専用のカラオケ管理アプリ。
+
+歌いたい曲をリスト化して、スコアや履歴を記録。  
+「おまかせ」機能でその場でランダムに1曲ピックアップ — シーズンやタグで絞り込んで迷わない。
+
+**App Store**: [apps.apple.com/jp/app/karalis/id6466579915](https://apps.apple.com/jp/app/karalis/id6466579915)  
+**バックエンド**: [karaoke-api](https://github.com/yukik8/karaoke-api)
+
+---
 
 ## 機能
 
-- **マイリスト** — 歌いたい曲を登録・管理。キー・シーズン・タグで整理できる
-- **おまかせ** — マイリストからランダムに曲を提案
-- **記録** — 歌った履歴とスコアを管理
-- **設定** — アカウント情報、ログアウト、アカウント削除
+- **マイリスト** — Apple Musicから曲を検索して追加。キー（音程）・シーズン・カスタムタグで整理
+- **おまかせ** — スロットマシン風アニメーションで1曲をランダムピック。シーズン・タグで事前フィルタ可能
+- **記録** — 歌唱履歴とスコア（0〜100）を管理。月別表示、スコアに応じてバッジカラーが変わる（90+: 金、70-89: オレンジ）
+- **設定** — アカウント情報、ログアウト、アカウント削除（全データ連動削除）
 
-## 技術スタック
+---
 
-### アプリ (Flutter)
+## Tech Stack
 
-| カテゴリ | 使用技術 |
+### アプリ
+
+| | |
 |---|---|
-| フレームワーク | Flutter / Dart |
-| 状態管理 | Riverpod |
-| 認証 | Firebase Auth（Google / Apple Sign-In） |
-| API通信 | http |
-| フォント | Noto Sans JP |
+| Framework | Flutter 3.x / Dart 3.x |
+| State | Riverpod（AsyncNotifier） |
+| Auth | Firebase Auth（Apple Sign-In / Google） |
+| External API | Apple Music API（カスタムJWT / ES256署名） |
+| Font | Noto Sans JP |
+| Build | iOS / Android |
 
-### バックエンド
+### バックエンド（[karaoke-api](https://github.com/yukik8/karaoke-api)）
 
-| カテゴリ | 使用技術 |
+| | |
 |---|---|
-| API | FastAPI（Python） |
-| ホスティング | Google Cloud Run |
-| データベース | Supabase（PostgreSQL） |
-| 認証検証 | Firebase Admin SDK |
+| Framework | FastAPI（Python 3.11） |
+| Hosting | Google Cloud Run |
+| DB | Supabase / PostgreSQL |
+| Auth | Firebase Admin SDK（IDトークン検証） |
+| ORM | SQLAlchemy 2.0 + Alembic |
+| External API | Apple Music API |
+
+---
 
 ## セットアップ
 
 ### 必要なファイル（git管理外）
-
-以下のファイルはリポジトリに含まれていないため、別途用意が必要です。
 
 ```
 ios/Runner/GoogleService-Info.plist   # Firebase iOS設定
 android/app/google-services.json     # Firebase Android設定
 ```
 
-### Flutter
+### 依存関係のインストールと起動
 
 ```bash
 flutter pub get
 flutter run
 ```
 
-### API（ローカル開発）
+### バックエンド（ローカル開発）
 
 ```bash
 cd ../karaoke-api
@@ -59,8 +72,9 @@ uvicorn app.main:app --reload
 
 環境変数は `.env` に記載。
 
+---
+
 ## 環境
 
-- Flutter 3.x
-- Dart 3.x
+- Flutter 3.x / Dart 3.x
 - Python 3.11
