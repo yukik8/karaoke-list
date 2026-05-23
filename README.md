@@ -1,3 +1,5 @@
+*日本語は下に記載しています。*
+
 # Karalis
 
 > Your personal karaoke manager — track songs you want to sing, log scores, and let the app pick what's next.
@@ -72,8 +74,6 @@ uvicorn app.main:app --reload
 Set environment variables in `.env`.
 
 ---
-
-*日本語は下に記載しています。*
 
 ---
 ---
