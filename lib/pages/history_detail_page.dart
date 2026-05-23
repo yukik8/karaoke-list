@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
+import '../data/register_notifier.dart';
 import '../models/singing_history_item.dart';
 import '../models/user_song.dart';
 
@@ -47,6 +48,136 @@ class HistoryDetailState extends ConsumerState<HistoryDetail> {
     super.dispose();
   }
 
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('記録を削除'),
+        content: const Text('この記録を削除しますか？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('削除', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    try {
+      await ref.read(dataProvider.notifier).deleteHistory(
+            widget.userSong.id,
+            widget.history.id,
+          );
+      if (context.mounted) Navigator.pop(context);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('削除に失敗しました: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showEditSheet(BuildContext context) async {
+    final scoreController = TextEditingController(
+      text: widget.history.score % 1 == 0
+          ? widget.history.score.toInt().toString()
+          : widget.history.score.toStringAsFixed(1),
+    );
+    final memoController = TextEditingController(text: widget.history.memo ?? '');
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('記録を編集',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            const Text('スコア', style: TextStyle(fontSize: 12, color: Color(0xFF888888))),
+            const SizedBox(height: 6),
+            TextField(
+              controller: scoreController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text('メモ', style: TextStyle(fontSize: 12, color: Color(0xFF888888))),
+            const SizedBox(height: 6),
+            TextField(
+              controller: memoController,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                hintText: 'メモを入力',
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _gold,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () async {
+                  final score = double.tryParse(scoreController.text);
+                  if (score == null) return;
+                  Navigator.pop(ctx);
+                  try {
+                    await ref.read(dataProvider.notifier).updateHistory(
+                          widget.userSong.id,
+                          widget.history.id,
+                          score: score,
+                          memo: memoController.text.isEmpty ? null : memoController.text,
+                        );
+                    if (context.mounted) Navigator.pop(context);
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('更新に失敗しました: $e')),
+                      );
+                    }
+                  }
+                },
+                child: const Text('保存',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Color _scoreColor(double score) {
     if (score >= 90) return const Color(0xFFB8860B);
     if (score >= 70) return _gold;
@@ -68,6 +199,16 @@ class HistoryDetailState extends ConsumerState<HistoryDetail> {
           '歌った記録',
           style: TextStyle(color: _gold, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: Color(0xFFAAAAAA)),
+            onPressed: () => _showEditSheet(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: () => _confirmDelete(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),

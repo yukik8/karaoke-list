@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+import '../models/singing_history_item.dart';
 import '../models/song.dart';
 import '../models/user_song.dart';
 
@@ -111,6 +112,33 @@ class KaraokeApiService {
     }
     final List<dynamic> data = json.decode(utf8.decode(resp.bodyBytes));
     return data.map((e) => Song.fromBackendJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<void> deleteHistory(String userSongId, String historyId) async {
+    final resp = await http.delete(
+      Uri.parse('$_baseUrl/v1/user-songs/$userSongId/history/$historyId'),
+      headers: await _headers(),
+    );
+    if (resp.statusCode != 204) {
+      throw Exception('Failed to delete history: ${resp.statusCode}');
+    }
+  }
+
+  Future<SingingHistoryItem> updateHistory(
+      String userSongId, String historyId, {double? score, String? memo}) async {
+    final body = <String, dynamic>{};
+    if (score != null) body['score'] = score;
+    if (memo != null) body['memo'] = memo;
+    final resp = await http.patch(
+      Uri.parse('$_baseUrl/v1/user-songs/$userSongId/history/$historyId'),
+      headers: await _headers(),
+      body: json.encode(body),
+    );
+    if (resp.statusCode != 200) {
+      throw Exception('Failed to update history: ${resp.statusCode}');
+    }
+    return SingingHistoryItem.fromJson(
+        json.decode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>);
   }
 
   Future<void> addHistory(String userSongId, double score, String? memo, {DateTime? sungAt}) async {
